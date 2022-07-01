@@ -2,11 +2,18 @@
 title: "ST 558 Project 2"
 author: "John Hinic & Fang Wu"
 date: '2022-07-01'
-output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(include = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(GGally)
+library(caret)
+#install.packages("devtools")
+#library(devtools)
+#install_github("AppliedDataSciencePartners/xgboostExplainer")
 ```
 
 ## R Markdown
