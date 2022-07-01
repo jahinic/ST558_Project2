@@ -1,0 +1,12 @@
+---
+title: "ST 558 Project 2"
+author: "John Hinic & Fang Wu"
+date: '2022-07-01'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
