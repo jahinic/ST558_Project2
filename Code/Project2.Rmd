@@ -115,5 +115,5 @@ g + geom_histogram(aes(fill=weekday), position="stack")
 
 ```{r}
 g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
-g + geom_histogram(aes(fill=is_weekend), position="stack", bins=30)
+g + geom_histogram(aes(fill=is_weekend), position="stack")
 ```
