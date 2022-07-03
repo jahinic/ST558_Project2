@@ -72,7 +72,7 @@ target_data <- type_data %>% filter(type == params$filter_type)
 # create predictor weekday 
 data <- target_data %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
 
-data <- data %>% select(shares, timedelta, num_self_hrefs, num_imgs, num_videos,  num_keywords, weekday, LDA_00, LDA_01, LDA_02, LDA_03, LDA_04, global_rate_negative_words, global_rate_positive_words)
+data <- data %>% select(shares, timedelta, num_self_hrefs, num_imgs, num_videos,  num_keywords, weekday, is_weekend, LDA_00, LDA_01, LDA_02, LDA_03, LDA_04, global_rate_negative_words, global_rate_positive_words)
 
 data
 ```
@@ -91,7 +91,7 @@ train
 
 ## Summarizations on train set
 
-### descriptive statistics on response variable
+* descriptive statistics on response variable
 
 ```{r}
 summary_response <- summary(train$shares)
@@ -102,9 +102,18 @@ sd_response
 
 The minimum value of shares is `r summary_response[1]`, maximum value is `r summary_response[6]`, mean is `r summary_response[4]`, median is `r summary_response[3]`, and standard deviation is `r sd_response`.
 
-* Across `weekday` predictor
+* summarization across `weekday` predictor
 
 ```{r}
 train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
 ```
 
+```{r}
+g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
+g + geom_histogram(aes(fill=weekday), position="stack")
+```
+
+```{r}
+g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
+g + geom_histogram(aes(fill=is_weekend), position="stack", bins=30)
+```
