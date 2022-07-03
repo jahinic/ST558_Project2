@@ -175,11 +175,11 @@ g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
 g + geom_histogram(aes(fill=weekday), position="stack")
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/tech_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](C:/NCSU/Git/ST558_Project2/images/unnamed-chunk-6-1.png)<!-- -->
 
 ``` r
 g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
 g + geom_histogram(aes(fill=is_weekend), position="stack", bins=30)
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/tech_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](C:/NCSU/Git/ST558_Project2/images/unnamed-chunk-7-1.png)<!-- -->

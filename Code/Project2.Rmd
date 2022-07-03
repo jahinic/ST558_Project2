@@ -7,7 +7,7 @@ date: '2022-07-01'
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(include = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(include = TRUE, warning = FALSE, message = FALSE, fig.path = "C:/NCSU/Git/ST558_Project2/images/")
 library(tidyverse)
 library(GGally)
 library(caret)
