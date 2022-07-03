@@ -70,20 +70,20 @@ target_data <- type_data %>% filter(type == params$filter_type)
 target_data
 ```
 
-    ## # A tibble: 7,346 x 62
+    ## # A tibble: 7,057 x 62
     ##    url           timedelta n_tokens_title
     ##    <chr>             <dbl>          <dbl>
-    ##  1 http://masha~       731             13
-    ##  2 http://masha~       731             10
-    ##  3 http://masha~       731             12
-    ##  4 http://masha~       731             11
-    ##  5 http://masha~       731              8
-    ##  6 http://masha~       731             13
-    ##  7 http://masha~       731             11
-    ##  8 http://masha~       731              8
-    ##  9 http://masha~       731              8
-    ## 10 http://masha~       731             12
-    ## # ... with 7,336 more rows, and 59 more
+    ##  1 http://masha~       731             12
+    ##  2 http://masha~       731              9
+    ##  3 http://masha~       731             14
+    ##  4 http://masha~       731             12
+    ##  5 http://masha~       731             11
+    ##  6 http://masha~       731             12
+    ##  7 http://masha~       731              5
+    ##  8 http://masha~       730             11
+    ##  9 http://masha~       730             10
+    ## 10 http://masha~       729             10
+    ## # ... with 7,047 more rows, and 59 more
     ## #   variables: n_tokens_content <dbl>,
     ## #   n_unique_tokens <dbl>,
     ## #   n_non_stop_words <dbl>,
