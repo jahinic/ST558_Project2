@@ -2,6 +2,8 @@
 title: "ST 558 Project 2"
 author: "John Hinic & Fang Wu"
 date: '2022-07-01'
+#params:
+#  filter_type: "entertainment"
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
@@ -30,7 +32,7 @@ We are going to analyze different type of article separately and use following p
 
 * num_keywords: Number of keywords in the metadata
 
-* is_weekend: Was the article published on the weekend?
+* weekday: day on which the article published 
 
 * LDA_00: Closeness to LDA topic 0
 
@@ -66,11 +68,43 @@ type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "life
 # select data for one data channel of interest with predictors for analyzing
 library(dplyr)
 target_data <- type_data %>% filter(type == params$filter_type) 
-target_data
 
+# create predictor weekday 
+data <- target_data %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
 
-#%>% select(timedelta, num_self_hrefs, num_imgs, num_videos,  num_keywords, is_weekend, LDA, global_rate_negative_words, global_rate_positive_words)
+data <- data %>% select(shares, timedelta, num_self_hrefs, num_imgs, num_videos,  num_keywords, weekday, LDA_00, LDA_01, LDA_02, LDA_03, LDA_04, global_rate_negative_words, global_rate_positive_words)
 
+data
 ```
 
-##
+* Split data into train and test sets
+
+```{r}
+library(caret)
+set.seed(100)
+train_index <- createDataPartition(data$weekday, p=0.7, list=FALSE)
+train <- data[train_index,]
+test <- data[-train_index, ]
+train
+```
+
+
+## Summarizations on train set
+
+### descriptive statistics on response variable
+
+```{r}
+summary_response <- summary(train$shares)
+summary_response 
+sd_response <- sd(train$shares)
+sd_response
+```
+
+The minimum value of shares is `r summary_response[1]`, maximum value is `r summary_response[6]`, mean is `r summary_response[4]`, median is `r summary_response[3]`, and standard deviation is `r sd_response`.
+
+* Across `weekday` predictor
+
+```{r}
+train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
+```
+

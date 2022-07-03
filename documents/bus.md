@@ -27,7 +27,7 @@ following predictors:
 
 -   num_keywords: Number of keywords in the metadata
 
--   is_weekend: Was the article published on the weekend?
+-   weekday: day on which the article published
 
 -   LDA_00: Closeness to LDA topic 0
 
@@ -67,32 +67,105 @@ type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "life
 # select data for one data channel of interest with predictors for analyzing
 library(dplyr)
 target_data <- type_data %>% filter(type == params$filter_type) 
-target_data
+
+# create predictor weekday 
+data <- target_data %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
+
+data <- data %>% select(shares, timedelta, num_self_hrefs, num_imgs, num_videos,  num_keywords, weekday, LDA_00, LDA_01, LDA_02, LDA_03, LDA_04, global_rate_negative_words, global_rate_positive_words)
+
+data
 ```
 
-    ## # A tibble: 7,057 x 62
-    ##    url           timedelta n_tokens_title
-    ##    <chr>             <dbl>          <dbl>
-    ##  1 http://masha~       731             12
-    ##  2 http://masha~       731              9
-    ##  3 http://masha~       731             14
-    ##  4 http://masha~       731             12
-    ##  5 http://masha~       731             11
-    ##  6 http://masha~       731             12
-    ##  7 http://masha~       731              5
-    ##  8 http://masha~       730             11
-    ##  9 http://masha~       730             10
-    ## 10 http://masha~       729             10
-    ## # ... with 7,047 more rows, and 59 more
-    ## #   variables: n_tokens_content <dbl>,
-    ## #   n_unique_tokens <dbl>,
-    ## #   n_non_stop_words <dbl>,
-    ## #   n_non_stop_unique_tokens <dbl>,
-    ## #   num_hrefs <dbl>,
-    ## #   num_self_hrefs <dbl>, ...
+    ## # A tibble: 7,057 x 14
+    ##    shares timedelta num_self_hrefs
+    ##     <dbl>     <dbl>          <dbl>
+    ##  1    593       731              2
+    ##  2   1200       731              0
+    ##  3   2100       731              4
+    ##  4   1200       731              4
+    ##  5   4600       731              3
+    ##  6   1200       731              3
+    ##  7    631       731              3
+    ##  8   1300       730              4
+    ##  9   1700       730              2
+    ## 10    455       729              1
+    ## # ... with 7,047 more rows, and 11 more
+    ## #   variables: num_imgs <dbl>,
+    ## #   num_videos <dbl>,
+    ## #   num_keywords <dbl>, weekday <chr>,
+    ## #   LDA_00 <dbl>, LDA_01 <dbl>,
+    ## #   LDA_02 <dbl>, LDA_03 <dbl>,
+    ## #   LDA_04 <dbl>, ...
+
+-   Split data into train and test sets
 
 ``` r
-#%>% select(timedelta, num_self_hrefs, num_imgs, num_videos,  num_keywords, is_weekend, LDA, global_rate_negative_words, global_rate_positive_words)
+library(caret)
+set.seed(100)
+train_index <- createDataPartition(data$weekday, p=0.7, list=FALSE)
+train <- data[train_index,]
+test <- data[-train_index, ]
+train
 ```
 
-## 
+    ## # A tibble: 4,943 x 14
+    ##    shares timedelta num_self_hrefs
+    ##     <dbl>     <dbl>          <dbl>
+    ##  1    593       731              2
+    ##  2   2100       731              4
+    ##  3   1200       731              4
+    ##  4   4600       731              3
+    ##  5   1200       731              3
+    ##  6    631       731              3
+    ##  7   1300       730              4
+    ##  8   1700       730              2
+    ##  9    455       729              1
+    ## 10   1900       729              2
+    ## # ... with 4,933 more rows, and 11 more
+    ## #   variables: num_imgs <dbl>,
+    ## #   num_videos <dbl>,
+    ## #   num_keywords <dbl>, weekday <chr>,
+    ## #   LDA_00 <dbl>, LDA_01 <dbl>,
+    ## #   LDA_02 <dbl>, LDA_03 <dbl>,
+    ## #   LDA_04 <dbl>, ...
+
+## Summarizations on train set
+
+### descriptive statistics on response variable
+
+``` r
+summary_response <- summary(train$shares)
+summary_response 
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu. 
+    ##      47     830    1200    2889    2100 
+    ##    Max. 
+    ##  193400
+
+``` r
+sd_response <- sd(train$shares)
+sd_response
+```
+
+    ## [1] 6770.211
+
+The minimum value of shares is 47, maximum value is 1.934^{5}, mean is
+2889.3267247, median is 1200, and standard deviation is 6770.2113135.
+
+-   Across `weekday` predictor
+
+``` r
+train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
+```
+
+    ## # A tibble: 7 x 6
+    ##   weekday     n   min    max   avg median
+    ##   <chr>   <int> <dbl>  <dbl> <dbl>  <dbl>
+    ## 1 Friday    681    58  82200 2845.   1200
+    ## 2 Monday    951    59 112600 2841.   1100
+    ## 3 Saturd~   266    65  35100 3167.   1600
+    ## 4 Sunday    376   536  69500 3791.   1700
+    ## 5 Thursd~   862    57 193400 2828.   1100
+    ## 6 Tuesday   900    47  87600 2739.   1100
+    ## 7 Wednes~   907    51  98500 2726.   1100
