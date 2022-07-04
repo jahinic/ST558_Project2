@@ -3,183 +3,356 @@ ST 558 Project 2
 John Hinic & Fang Wu
 2022-07-01
 
+-   [Introduction](#introduction)
+-   [Prepare Data](#prepare-data)
+-   [Summarizations on train set](#summarizations-on-train-set)
+
 ## Introduction
 
-We are going to analyze an online news popularity data set from [Machine
-Learning
-Repository](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity#).
-This data set summarizes a heterogeneous set of features about articles
-published by Mashable in a period of two years. The goal is to predict
-the number of shares in social networks (popularity).
+The consumption of online news is expediting day by day due to the
+extensive adoption of smartphones and the rise of social networks.
+Online news can capture the eye of a signiﬁcant amount of Internet users
+within a brief period of your time. Prediction of online news popularity
+helps news organizations to gain better insights into the audience
+interests and to deliver more relevant and appealing content in a
+proactive manner. The company can allocate resources more wisely to
+prepare stories over their life cycle. Moreover, prediction of news
+popularity is also beneﬁcial for trend forecasting, understanding the
+collective human behavior, advertisers to propose more proﬁtable
+monetization techniques,and readers to ﬁlter the huge amount of
+information quickly and efﬁciently.
 
-We are going to analyze different type of article separately and use
-following predictors:
+We are going to analyze and predict the number of shares within
+different data channel of interest using an online news data set from
+[Machine Learning
+Repository](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity#)
+. This data set summarizes a heterogeneous set of features about
+articles published by Mashable in a period of two years.
 
--   timedelta: Days between the article publication and the data set
-    acquisition
+-   We are going to focuse on the following predictors:
 
--   num_self_hrefs: Number of links to other articles published by
-    Mashable
+    1.  url: URL of the article (non-predictive)
 
--   num_imgs: Number of images
+    2.  timedelta: Days between the article publication and the dataset
+        acquisition (non-predictive)
 
--   num_videos: Number of videos
+    3.  n_tokens_title: Number of words in the title
 
--   num_keywords: Number of keywords in the metadata
+    4.  n_tokens_content Number of words in the content
 
--   weekday: day on which the article published
+    5.  n_unique_tokens: Rate of unique words in the content
 
--   LDA_00: Closeness to LDA topic 0
+    6.  n_non_stop_unique_tokens: Rate of unique non-stop words in the
+        content
 
--   LDA_01: Closeness to LDA topic 1
+    7.  num_hrefs: Number of links
 
--   LDA_02: Closeness to LDA topic 2
+    8.  num_self_hrefs: Number of links to other articles published by
+        Mashable
 
--   LDA_03: Closeness to LDA topic 3
+    9.  num_imgs: Number of images
 
--   LDA_04: Closeness to LDA topic 4
+    10. num_videos: Number of videos
 
--   global_rate_positive_words: Rate of positive words in the content
+    11. average_token_length: Average length of the words in the content
 
--   global_rate_negative_words: Rate of negative words in the content
+    12. num_keywords: Number of keywords in the metadata
 
-In order to predict the number of shares, we are going to use
+    13. self_reference_min_shares: Min. shares of referenced articles in
+        Mashable
+
+    14. self_reference_max_shares: Max. shares of referenced articles in
+        Mashable
+
+    15. self_reference_avg_sharess: Avg. shares of referenced articles
+        in Mashable
+
+    16. global_subjectivity: Text subjectivity
+
+    17. global_sentiment_polarity: Text sentiment polarity
+
+    18. global_rate_positive_words: Rate of positive words in the
+        content
+
+    19. global_rate_negative_words: Rate of negative words in the
+        content
+
+    20. rate_positive_words: Rate of positive words among non-neutral
+        tokens
+
+    21. rate_negative_words: Rate of negative words among non-neutral
+        tokens
+
+    22. title_subjectivity: Title subjectivity
+
+    23. title_sentiment_polarity: Title polarity
+
+    24. abs_title_subjectivity: Absolute subjectivity level
+
+    25. abs_title_sentiment_polarity: Absolute polarity level
+
+    26. shares: Number of shares (target)
+
+Stop Words usually refer to the most common words in a language, there
+is no single universal list of stop words used by all natural language
+processing tools. For some search engines, these are some of the most
+common, short function words, such as the, is, at, which, and on.
 
 ## Prepare Data
 
-We’ll use the `readr` and `dplyr` packags from the `tifyverse`. First,
-we are going to read in data as tibble using function `read_csv`. Next,
-in order to access different data channel of interest automatically, we
-are going to create a variable called `type`. Last we `filter` the data
-channel of interest using `params$type` and `select` predictors we are
-going to work on.
+We’ll use the `readr` and `dplyr` packages from `tifyverse`. First, we
+are going to read in data as tibble using function `read_csv`. Next, in
+order to access different data channel of interest automatically, we are
+going to create a variable called `type`. Last we `filter` the data
+channel of interest using `params$` automatically.
+
+-   Read in raw data and create new variable `type`
 
 ``` r
 # read in raw data
 raw_data <- read_csv("C:/NCSU/Git/ST558_Project2/Data/OnlineNewsPopularity.csv") 
 
-# create type column for different daa channel
-
+# create type column for different data channel
 type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "lifestyle", ifelse(data_channel_is_entertainment==1, "entertainment", ifelse(data_channel_is_bus==1, "bus", ifelse(data_channel_is_socmed==1, "socmed", ifelse(data_channel_is_tech==1, "tech", ifelse(data_channel_is_world==1, "world", NA)))))))
 ```
 
+-   Subset data channel of interest automatically with `params`
+
 ``` r
-# select data for one data channel of interest with predictors for analyzing
+# select data for data channel of interest
 library(dplyr)
 target_data <- type_data %>% filter(type == params$filter_type) 
-
-# create predictor weekday 
-data <- target_data %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
-
-data <- data %>% select(shares, timedelta, num_self_hrefs, num_imgs, num_videos,  num_keywords, weekday, is_weekend, LDA_00, LDA_01, LDA_02, LDA_03, LDA_04, global_rate_negative_words, global_rate_positive_words)
-
-data
+target_data
 ```
 
-    ## # A tibble: 7,057 x 15
-    ##    shares timedelta num_self_hrefs
-    ##     <dbl>     <dbl>          <dbl>
-    ##  1    593       731              2
-    ##  2   1200       731              0
-    ##  3   2100       731              4
-    ##  4   1200       731              4
-    ##  5   4600       731              3
-    ##  6   1200       731              3
-    ##  7    631       731              3
-    ##  8   1300       730              4
-    ##  9   1700       730              2
-    ## 10    455       729              1
-    ## # ... with 7,047 more rows, and 12 more
-    ## #   variables: num_imgs <dbl>,
-    ## #   num_videos <dbl>,
-    ## #   num_keywords <dbl>, weekday <chr>,
-    ## #   is_weekend <dbl>, LDA_00 <dbl>,
-    ## #   LDA_01 <dbl>, LDA_02 <dbl>,
-    ## #   LDA_03 <dbl>, LDA_04 <dbl>, ...
+    ## # A tibble: 2,099 x 62
+    ##    url               timedelta n_tokens_title
+    ##    <chr>                 <dbl>          <dbl>
+    ##  1 http://mashable.~       731              8
+    ##  2 http://mashable.~       731             10
+    ##  3 http://mashable.~       731             11
+    ##  4 http://mashable.~       731             10
+    ##  5 http://mashable.~       731              8
+    ##  6 http://mashable.~       731             11
+    ##  7 http://mashable.~       731             10
+    ##  8 http://mashable.~       731              6
+    ##  9 http://mashable.~       730             12
+    ## 10 http://mashable.~       729             11
+    ## # ... with 2,089 more rows, and 59 more
+    ## #   variables: n_tokens_content <dbl>,
+    ## #   n_unique_tokens <dbl>,
+    ## #   n_non_stop_words <dbl>,
+    ## #   n_non_stop_unique_tokens <dbl>,
+    ## #   num_hrefs <dbl>, num_self_hrefs <dbl>,
+    ## #   num_imgs <dbl>, num_videos <dbl>, ...
 
 -   Split data into train and test sets
 
 ``` r
 library(caret)
 set.seed(100)
-train_index <- createDataPartition(data$weekday, p=0.7, list=FALSE)
-train <- data[train_index,]
-test <- data[-train_index, ]
+train_index <- createDataPartition(target_data$is_weekend, p=0.7, list=FALSE)
+train <- target_data[train_index,]
+test <- target_data[-train_index, ]
 train
 ```
 
-    ## # A tibble: 4,943 x 15
-    ##    shares timedelta num_self_hrefs
-    ##     <dbl>     <dbl>          <dbl>
-    ##  1    593       731              2
-    ##  2   2100       731              4
-    ##  3   1200       731              4
-    ##  4   4600       731              3
-    ##  5   1200       731              3
-    ##  6    631       731              3
-    ##  7   1300       730              4
-    ##  8   1700       730              2
-    ##  9    455       729              1
-    ## 10   1900       729              2
-    ## # ... with 4,933 more rows, and 12 more
-    ## #   variables: num_imgs <dbl>,
-    ## #   num_videos <dbl>,
-    ## #   num_keywords <dbl>, weekday <chr>,
-    ## #   is_weekend <dbl>, LDA_00 <dbl>,
-    ## #   LDA_01 <dbl>, LDA_02 <dbl>,
-    ## #   LDA_03 <dbl>, LDA_04 <dbl>, ...
+    ## # A tibble: 1,470 x 62
+    ##    url               timedelta n_tokens_title
+    ##    <chr>                 <dbl>          <dbl>
+    ##  1 http://mashable.~       731              8
+    ##  2 http://mashable.~       731             10
+    ##  3 http://mashable.~       731             11
+    ##  4 http://mashable.~       731             10
+    ##  5 http://mashable.~       731              8
+    ##  6 http://mashable.~       731             11
+    ##  7 http://mashable.~       729              7
+    ##  8 http://mashable.~       729              9
+    ##  9 http://mashable.~       729             10
+    ## 10 http://mashable.~       729             14
+    ## # ... with 1,460 more rows, and 59 more
+    ## #   variables: n_tokens_content <dbl>,
+    ## #   n_unique_tokens <dbl>,
+    ## #   n_non_stop_words <dbl>,
+    ## #   n_non_stop_unique_tokens <dbl>,
+    ## #   num_hrefs <dbl>, num_self_hrefs <dbl>,
+    ## #   num_imgs <dbl>, num_videos <dbl>, ...
 
 ## Summarizations on train set
 
--   descriptive statistics on response variable
+-   descriptive statistics:
 
 ``` r
-summary_response <- summary(train$shares)
-summary_response 
+summary(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
 ```
 
-    ##    Min. 1st Qu.  Median    Mean 3rd Qu. 
-    ##      47     830    1200    2889    2100 
-    ##    Max. 
-    ##  193400
+    ##    timedelta     n_tokens_title  
+    ##  Min.   :  9.0   Min.   : 3.000  
+    ##  1st Qu.:211.2   1st Qu.: 8.000  
+    ##  Median :413.5   Median :10.000  
+    ##  Mean   :405.1   Mean   : 9.741  
+    ##  3rd Qu.:613.8   3rd Qu.:11.000  
+    ##  Max.   :731.0   Max.   :18.000  
+    ##  n_tokens_content n_unique_tokens 
+    ##  Min.   :   0.0   Min.   :0.0000  
+    ##  1st Qu.: 306.2   1st Qu.:0.4616  
+    ##  Median : 505.0   Median :0.5187  
+    ##  Mean   : 623.4   Mean   :0.5219  
+    ##  3rd Qu.: 802.8   3rd Qu.:0.5907  
+    ##  Max.   :7764.0   Max.   :0.8681  
+    ##  n_non_stop_unique_tokens   num_hrefs     
+    ##  Min.   :0.0000           Min.   :  0.00  
+    ##  1st Qu.:0.6251           1st Qu.:  6.00  
+    ##  Median :0.6849           Median : 10.00  
+    ##  Mean   :0.6818           Mean   : 13.37  
+    ##  3rd Qu.:0.7527           3rd Qu.: 18.00  
+    ##  Max.   :0.9697           Max.   :145.00  
+    ##  num_self_hrefs      num_imgs      
+    ##  Min.   : 0.000   Min.   :  0.000  
+    ##  1st Qu.: 1.000   1st Qu.:  1.000  
+    ##  Median : 2.000   Median :  1.000  
+    ##  Mean   : 2.467   Mean   :  4.836  
+    ##  3rd Qu.: 3.000   3rd Qu.:  8.000  
+    ##  Max.   :40.000   Max.   :111.000  
+    ##    num_videos      average_token_length
+    ##  Min.   : 0.0000   Min.   :0.000       
+    ##  1st Qu.: 0.0000   1st Qu.:4.441       
+    ##  Median : 0.0000   Median :4.614       
+    ##  Mean   : 0.5143   Mean   :4.574       
+    ##  3rd Qu.: 0.0000   3rd Qu.:4.793       
+    ##  Max.   :50.0000   Max.   :5.813       
+    ##   num_keywords    self_reference_avg_sharess
+    ##  Min.   : 3.000   Min.   :     0.0          
+    ##  1st Qu.: 7.000   1st Qu.:   919.5          
+    ##  Median : 8.000   Median :  2500.0          
+    ##  Mean   : 8.239   Mean   :  6227.8          
+    ##  3rd Qu.:10.000   3rd Qu.:  5700.0          
+    ##  Max.   :10.000   Max.   :401450.0          
+    ##  self_reference_min_shares
+    ##  Min.   :     0.0         
+    ##  1st Qu.:   625.2         
+    ##  Median :  1600.0         
+    ##  Mean   :  4594.4         
+    ##  3rd Qu.:  3800.0         
+    ##  Max.   :144900.0         
+    ##  self_reference_max_shares
+    ##  Min.   :     0.0         
+    ##  1st Qu.:   919.5         
+    ##  Median :  2800.0         
+    ##  Mean   :  8489.6         
+    ##  3rd Qu.:  7300.0         
+    ##  Max.   :690400.0         
+    ##  global_rate_negative_words
+    ##  Min.   :0.00000           
+    ##  1st Qu.:0.01003           
+    ##  Median :0.01520           
+    ##  Mean   :0.01615           
+    ##  3rd Qu.:0.02085           
+    ##  Max.   :0.06061           
+    ##  global_rate_positive_words
+    ##  Min.   :0.00000           
+    ##  1st Qu.:0.03483           
+    ##  Median :0.04396           
+    ##  Mean   :0.04436           
+    ##  3rd Qu.:0.05333           
+    ##  Max.   :0.12139           
+    ##  global_sentiment_polarity
+    ##  Min.   :-0.3727          
+    ##  1st Qu.: 0.1027          
+    ##  Median : 0.1509          
+    ##  Mean   : 0.1524          
+    ##  3rd Qu.: 0.2048          
+    ##  Max.   : 0.5800          
+    ##  global_subjectivity rate_negative_words
+    ##  Min.   :0.0000      Min.   :0.0000     
+    ##  1st Qu.:0.4270      1st Qu.:0.1818     
+    ##  Median :0.4782      Median :0.2540     
+    ##  Mean   :0.4738      Mean   :0.2632     
+    ##  3rd Qu.:0.5251      3rd Qu.:0.3333     
+    ##  Max.   :0.8667      Max.   :1.0000     
+    ##  rate_positive_words title_subjectivity
+    ##  Min.   :0.0000      Min.   :0.0000    
+    ##  1st Qu.:0.6667      1st Qu.:0.0000    
+    ##  Median :0.7407      Median :0.1000    
+    ##  Mean   :0.7239      Mean   :0.2831    
+    ##  3rd Qu.:0.8125      3rd Qu.:0.5000    
+    ##  Max.   :1.0000      Max.   :1.0000    
+    ##  title_sentiment_polarity
+    ##  Min.   :-1.0000         
+    ##  1st Qu.: 0.0000         
+    ##  Median : 0.0000         
+    ##  Mean   : 0.1072         
+    ##  3rd Qu.: 0.2138         
+    ##  Max.   : 1.0000         
+    ##  abs_title_sentiment_polarity
+    ##  Min.   :0.0000              
+    ##  1st Qu.:0.0000              
+    ##  Median :0.0000              
+    ##  Mean   :0.1720              
+    ##  3rd Qu.:0.2733              
+    ##  Max.   :1.0000              
+    ##  abs_title_subjectivity
+    ##  Min.   :0.0000        
+    ##  1st Qu.:0.1667        
+    ##  Median :0.5000        
+    ##  Mean   :0.3453        
+    ##  3rd Qu.:0.5000        
+    ##  Max.   :0.5000
+
+-   Correlation between predictors
 
 ``` r
-sd_response <- sd(train$shares)
-sd_response
+library(corrplot)
+Correlation <- cor(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
+corrplot(Correlation, type="upper", tl.pos="lt")
 ```
 
-    ## [1] 6770.211
+![](images/unnamed-chunk-5-1.png)<!-- -->
 
-The minimum value of shares is 47, maximum value is 1.934^{5}, mean is
-2889.3267247, median is 1200, and standard deviation is 6770.2113135.
+This plot help us to compare correlation between predictors.
 
--   summarization across `weekday` predictor
+-   summary across different day of the week
+
+We are going to create a new variable named `weekday` and show share
+performance on different day of the week.
 
 ``` r
-train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
+# create predictor weekday 
+train_day <- train %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
+
+# shares on different day
+train_day %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
 ```
 
     ## # A tibble: 7 x 6
-    ##   weekday     n   min    max   avg median
-    ##   <chr>   <int> <dbl>  <dbl> <dbl>  <dbl>
-    ## 1 Friday    681    58  82200 2845.   1200
-    ## 2 Monday    951    59 112600 2841.   1100
-    ## 3 Saturd~   266    65  35100 3167.   1600
-    ## 4 Sunday    376   536  69500 3791.   1700
-    ## 5 Thursd~   862    57 193400 2828.   1100
-    ## 6 Tuesday   900    47  87600 2739.   1100
-    ## 7 Wednes~   907    51  98500 2726.   1100
+    ##   weekday       n   min    max   avg median
+    ##   <chr>     <int> <dbl>  <dbl> <dbl>  <dbl>
+    ## 1 Friday      221   127  40400 2933.   1400
+    ## 2 Monday      218   171 196700 4938.   1550
+    ## 3 Saturday    133   776  29200 3832.   1900
+    ## 4 Sunday      152   613  27500 3488.   2050
+    ## 5 Thursday    260   184  56000 3630.   1600
+    ## 6 Tuesday     227    93  54900 3738.   1600
+    ## 7 Wednesday   259    78  73100 3205.   1600
+
+We can inspect the number of records on each day as well as the minimum,
+maximum, mean and median of shares on each day of the week from above
+table.
+
+Now let’s look at the count of shares on different day of the week.
 
 ``` r
-g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
-g + geom_histogram(aes(fill=weekday), position="stack")
+g <- ggplot(train_day %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
+g + geom_freqpoly(aes(color=weekday))
 ```
 
-![](C:/NCSU/Git/ST558_Project2/images/unnamed-chunk-6-1.png)<!-- -->
+![](images/unnamed-chunk-7-1.png)<!-- -->
+
+-   Number of links to other articles published by Mashable
 
 ``` r
-g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
-g + geom_histogram(aes(fill=is_weekend), position="stack")
+g <- ggplot(train_day, aes(x=num_self_hrefs, y=shares) )
+g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/images/unnamed-chunk-7-1.png)<!-- -->
+![](images/unnamed-chunk-8-1.png)<!-- -->
