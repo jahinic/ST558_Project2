@@ -158,3 +158,31 @@ g <- ggplot(train_day, aes(x=num_self_hrefs, y=shares) )
 g + geom_point()
 ```
 
+* Number of links to other articles published by Mashable
+
+```{r}
+g <- ggplot(train_day, aes(x=num_self_hrefs, y=shares) )
+g + geom_point()
+```
+
+## Model
+
+### Linear Regression
+
+```{r}
+library(caret)
+mlFit <- train(shares~timedelta+n_tokens_title+num_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="lm", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10))
+mlFit
+```
+
+
+
+### Ensemble Tree
+
+* Boosted Trees
+
+```{r}
+boostedFit <- train(shares~timedelta+n_tokens_title+num_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="bstTree", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10), tuneGrid=data.frame(mstop=10, maxdepth=10, nu=1:10))
+boostedFit
+```
+
