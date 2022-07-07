@@ -20,7 +20,7 @@ Our goal is to predict the number of shares in social networks (popularity) with
 
 ## Links to analysis for each type of article:
 
-[Bus articles ia available here](/blob/main/documents/bus.html)
+[Bus articles ia available here](/documents/bus.html)
 
 [Entertainment articles ia available here](documents/entertainment.html)
 
