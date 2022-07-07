@@ -2,18 +2,22 @@
 title: "ST 558 Project 2"
 author: "John Hinic & Fang Wu"
 date: '2022-07-01'
-params:
-  filter_type: "bus"
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
-library(tidyverse)
-library(GGally)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE )
+library(readr)
+library(dplyr)
+library(ggplot2)
 library(caret)
+library(corrplot)
 #install.packages("devtools")
 #library(devtools)
 #install_github("AppliedDataSciencePartners/xgboostExplainer")
+```
+
+```{r, eval=TRUE}
+print(params[[1]]$filter_type)
 ```
 
 ## Introduction 
@@ -22,7 +26,7 @@ The consumption of online news is expediting day by day due to the extensive ado
 
 We are going to analyze and predict the number of shares within different data channel of interest using an online news data set from [Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity#) . This data set summarizes a heterogeneous set of features about articles published by Mashable in a period of two years.
 
-* We are going to focuse on the following predictors:
+* We are going to focus on the following predictors:
 
   1. url: URL of the article (non-predictive)
   
@@ -78,6 +82,8 @@ We are going to analyze and predict the number of shares within different data c
 
 Stop Words usually refer to the most common words in a language, there is no single universal list of stop words used by all natural language processing tools. For some search engines, these are some of the most common, short function words, such as the, is, at, which, and on.
 
+In order to predict the number of share, we are going to build linear regression and ensemble tree-based model.
+
 ## Prepare Data
 
 We'll use the `readr` and `dplyr` packages from `tifyverse`. First, we are going to read in data as tibble using function `read_csv`. Next, in order to access different data channel of interest automatically, we are going to create a variable called `type`. Last we `filter` the data channel of interest using `params$` automatically.  
@@ -86,7 +92,7 @@ We'll use the `readr` and `dplyr` packages from `tifyverse`. First, we are going
 
 ```{r}
 # read in raw data
-raw_data <- read_csv("C:/NCSU/Git/ST558_Project2/Data/OnlineNewsPopularity.csv") 
+raw_data <- read_csv("../Data/OnlineNewsPopularity.csv") 
 
 # create type column for different data channel
 type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "lifestyle", ifelse(data_channel_is_entertainment==1, "entertainment", ifelse(data_channel_is_bus==1, "bus", ifelse(data_channel_is_socmed==1, "socmed", ifelse(data_channel_is_tech==1, "tech", ifelse(data_channel_is_world==1, "world", NA)))))))
@@ -96,93 +102,129 @@ type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "life
 
 ```{r}
 # select data for data channel of interest
-library(dplyr)
-target_data <- type_data %>% filter(type == params$filter_type) 
+target_data <- type_data %>% filter(type == params[[1]]$filter_type) 
 target_data
 ```
 
 * Split data into train and test sets
 
 ```{r}
-library(caret)
 set.seed(100)
 train_index <- createDataPartition(target_data$is_weekend, p=0.7, list=FALSE)
 train <- target_data[train_index,]
 test <- target_data[-train_index, ]
-train
+dim(train)
 ```
 
 ## Summarizations on train set
 
-* descriptive statistics:
+* descriptive statistics on numeric variables:
 
 ```{r}
 summary(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
 ```
 
-* Correlation between predictors
+We can find the minimum, 25% percentile, mean, median, 75% percentile and maximum values of each numeric variables from this chart. 
 
 ```{r}
-library(corrplot)
+sapply(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity), sd)
+```
+
+From here we can compare standard deviation between numeric variables.
+
+* Correlation between numeric predictors
+
+```{r}
 Correlation <- cor(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
 corrplot(Correlation, type="upper", tl.pos="lt")
 ```
 
-This plot help us to compare correlation between predictors. 
+This plot help us to check linear relationship between predictors. We want to avoid include predictors with high correlation in the same model. 
 
 * summary across different day of the week
 
-We are going to create a new variable named `weekday` and show share performance on different day of the week.
+We are going to create a new variable named `weekday` and visualize share performance on different day of the week.
 
 ```{r}
 # create predictor weekday 
-train_day <- train %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
+train <- train %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
+
+test <- test %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
 
 # shares on different day
-train_day %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
+train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
 ```
 
-We can inspect the number of records on each day as well as the minimum, maximum, mean and median of shares on each day of the week from above table.
+We can inspect the effect of `weekday` on the `share`. The number of records on each day as well as the minimum, maximum, mean and median values of shares on each day of the week are included in the table here. If there are big difference across `weekday`, then `weekday` and `share` are dependent. 
 
-Now let's look at the count of shares on different day of the week.
+We also can check the difference in plot.
 
 ```{r}
-g <- ggplot(train_day %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
+g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
 g + geom_freqpoly(aes(color=weekday))
 ```
 
-* Number of links to other articles published by Mashable
+* Scatter plot
+
+We want to check the relationship between response variable `share` and other predictors through scatter plot. Linear or non-linear? Positive or negative?
 
 ```{r}
-g <- ggplot(train_day, aes(x=num_self_hrefs, y=shares) )
+g <- ggplot(train, aes(x=num_self_hrefs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-* Number of links to other articles published by Mashable
-
 ```{r}
-g <- ggplot(train_day, aes(x=num_self_hrefs, y=shares) )
+g <- ggplot(train, aes(x=num_imgs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-## Model
+```{r}
+g <- ggplot(train, aes(x=rate_positive_words, y=shares, col=weekday) )
+g + geom_point()
+```
+
+## Modeling
 
 ### Linear Regression
 
 ```{r}
-library(caret)
-mlFit <- train(shares~timedelta+n_tokens_title+num_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="lm", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10))
+mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="lm", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10))
 mlFit
 ```
 
-
-
-### Ensemble Tree
+### Tree-based model
 
 * Boosted Trees
 
-```{r}
-boostedFit <- train(shares~timedelta+n_tokens_title+num_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="bstTree", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10), tuneGrid=data.frame(mstop=10, maxdepth=10, nu=1:10))
+Boosted trees model trains a bunch of trees sequentially. Each subsequent tree learns from the mistakes of the previous tree. So predictions get updated as trees grown. It is used for both regression and classification. 
+
+```{r, results=FALSE}
+n.trees=c(50, 100, 150)
+interaction.depth=c(2,3,4)
+shrinkage=c(0.1, 0.5)
+n.minobsinnode=c(10)
+tune_parameter <- expand.grid(n.trees=n.trees, interaction.depth=interaction.depth, shrinkage=shrinkage, n.minobsinnode=n.minobsinnode)
+boostedFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="gbm", trControl=trainControl(method="repeatedcv", number=5, repeats=3), tuneGrid=tune_parameter)
 boostedFit
 ```
+
+### Compare models on the test set
+
+```{r}
+ml_pred <- predict(mlFit, test)
+ml_MSE <- postResample(test$shares, ml_pred)[1]
+boosted_pred <- predict(boostedFit, test)
+boosted_MSE <- postResample(test$shares, boosted_pred)[1]
+comp <- data.frame(LR=ml_MSE, Boosted=boosted_MSE)
+comp
+```
+
+```{r}
+best_model <- which.min(comp["RMSE",])
+best_model
+```
+
+` names(best_model)` has the minimum MSE which indicates the best fitting. 
+
+
 
