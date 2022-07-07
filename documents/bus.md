@@ -404,7 +404,7 @@ g <- ggplot(train_day %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares)
 g + geom_freqpoly(aes(color=weekday))
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/bus_files/figure-gfm/unnamed-chunk-7-1.png)
+![](/documents/bus_files/figure-gfm/unnamed-chunk-7-1.png)
 
 -   Number of links to other articles published by Mashable
 
@@ -413,4 +413,4 @@ g <- ggplot(train_day, aes(x=num_self_hrefs, y=shares) )
 g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/bus_files/figure-gfm/unnamed-chunk-8-1.png)
+![](../documents/bus_files/figure-gfm/unnamed-chunk-8-1.png)
