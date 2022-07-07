@@ -22,15 +22,15 @@ Our goal is to predict the number of shares in social networks (popularity) with
 
 [Bus articles ia available here](/documents/bus.md)
 
-[Entertainment articles ia available here](/documents/entertainment.html)
+[Entertainment articles ia available here](/documents/entertainment.md)
 
-[Lifestyle articles ia available here](documents/lifestyle.html)
+[Lifestyle articles ia available here](documents/lifestyle.md)
 
 [Socmed articles ia available here](documents/socmed.md)
 
-[Tech articles ia available here](documents/tech.html)
+[Tech articles ia available here](documents/tech.md)
 
-[World articles ia available here](documents/world.html)
+[World articles ia available here](documents/world.md)
 
 ## render code
 
