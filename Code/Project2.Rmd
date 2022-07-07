@@ -16,10 +16,6 @@ library(corrplot)
 #install_github("AppliedDataSciencePartners/xgboostExplainer")
 ```
 
-```{r, eval=TRUE}
-print(params[[1]]$filter_type)
-```
-
 ## Introduction 
 
 The consumption of online news is expediting day by day due to the extensive adoption of smartphones and the rise of social networks. Online news can capture the eye of a signiﬁcant amount of Internet users within a brief period of your time. Prediction of online news popularity helps news organizations to gain better insights into the audience interests and to deliver more relevant and appealing content in a proactive manner. The company can allocate resources more wisely to prepare stories over their life cycle. Moreover, prediction of news popularity is also beneﬁcial for trend forecasting, understanding the collective human behavior, advertisers to propose more proﬁtable monetization techniques,and readers to ﬁlter the huge amount of information quickly and efﬁciently.
@@ -224,7 +220,7 @@ best_model <- which.min(comp["RMSE",])
 best_model
 ```
 
-` names(best_model)` has the minimum MSE which indicates the best fitting. 
+`r names(best_model)` has the minimum MSE which indicates the best fitting. 
 
 
 

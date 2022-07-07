@@ -8,12 +8,6 @@ John Hinic & Fang Wu
 -   [Summarizations on train set](#summarizations-on-train-set)
 -   [Modeling](#modeling)
 
-``` r
-print(params[[1]]$filter_type)
-```
-
-    ## [1] "entertainment"
-
 ## Introduction
 
 The consumption of online news is expediting day by day due to the
@@ -409,7 +403,7 @@ Correlation <- cor(train %>% select(timedelta, n_tokens_title, n_tokens_content,
 corrplot(Correlation, type="upper", tl.pos="lt")
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 This plot help us to check linear relationship between predictors. We
 want to avoid include predictors with high correlation in the same
@@ -456,7 +450,7 @@ g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
 g + geom_freqpoly(aes(color=weekday))
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 -   Scatter plot
 
@@ -469,21 +463,21 @@ g <- ggplot(train, aes(x=num_self_hrefs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 g <- ggplot(train, aes(x=num_imgs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 g <- ggplot(train, aes(x=rate_positive_words, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](C:/NCSU/Git/ST558_Project2/documents/lifestyle_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ## Modeling
 
@@ -555,5 +549,4 @@ best_model
     ## Boosted 
     ##       2
 
-`names(best_model)` has the minimum MSE which indicates the best
-fitting.
+Boosted has the minimum MSE which indicates the best fitting.
