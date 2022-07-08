@@ -355,7 +355,7 @@ Correlation <- cor(train %>% select(-url, -type, -starts_with("weekday"), -start
 corrplot(Correlation, type="upper", tl.pos="lt", cl.cex=0.8)
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/tech_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](/documents/tech_files/figure-gfm/unnamed-chunk-6-1.png)
 
 This plot help us to check linear relationship between numeric
 variables. We want to avoid include predictors with high correlation in
@@ -401,7 +401,7 @@ g + geom_freqpoly(aes(color=weekday)) +
   ggtitle("Counts of shares across day of the week")
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/tech_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](/documents/tech_files/figure-gfm/unnamed-chunk-8-1.png)
 
 ``` r
 ggplot(train, aes(x=weekday, y=shares)) +
@@ -410,7 +410,7 @@ ggplot(train, aes(x=weekday, y=shares)) +
   ggtitle("box plot of shares across day of the week")
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/tech_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](/documents/tech_files/figure-gfm/unnamed-chunk-9-1.png)
 
 In this plot, we can compare the median, 25% percentile, 75% percentile
 and IQR of shares between different day of the week. It will show the
@@ -430,7 +430,7 @@ g + geom_jitter() +
     ggtitle("scatter plot of shares against number of links") 
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/tech_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](/documents/tech_files/figure-gfm/unnamed-chunk-10-1.png)
 
 ``` r
 g <- ggplot(train, aes(x=rate_positive_words, y=shares) )
@@ -439,7 +439,7 @@ g + geom_point() +
   ggtitle("scatter plot of shares against rate of positive words")
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/tech_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](/documents/tech_files/figure-gfm/unnamed-chunk-11-1.png)
 
 ## Modeling
 
