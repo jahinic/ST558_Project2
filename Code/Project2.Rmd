@@ -3,11 +3,11 @@ title: "ST 558 Project 2"
 author: "John Hinic & Fang Wu"
 date: '2022-07-01'
 params:
-  filter_type: "bus"
+  filter_type: bus
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.path = "../images")
 library(readr)
 library(dplyr)
 library(ggplot2)
