@@ -354,7 +354,7 @@ Correlation <- cor(train %>% select(timedelta, n_tokens_title, n_tokens_content,
 corrplot(Correlation, type="upper", tl.pos="lt", cl.cex=0.8)
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/world_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](/documents/world_files/figure-gfm/unnamed-chunk-6-1.png)
 
 This plot help us to check linear relationship between predictors. We
 want to avoid include predictors with high correlation in the same
@@ -399,7 +399,7 @@ g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
 g + geom_freqpoly(aes(color=weekday))
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/world_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](/documents/world_files/figure-gfm/unnamed-chunk-8-1.png)
 
 -   Scatter plot
 
@@ -412,21 +412,21 @@ g <- ggplot(train, aes(x=num_self_hrefs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/world_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](/documents/world_files/figure-gfm/unnamed-chunk-9-1.png)
 
 ``` r
 g <- ggplot(train, aes(x=num_imgs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/world_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](/documents/world_files/figure-gfm/unnamed-chunk-10-1.png)
 
 ``` r
 g <- ggplot(train, aes(x=rate_positive_words, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](C:/NCSU/Git/ST558_Project2/documents/world_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+![](/documents/world_files/figure-gfm/unnamed-chunk-11-1.png)
 
 ## Modeling
 
