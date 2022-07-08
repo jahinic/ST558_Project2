@@ -129,18 +129,18 @@ target_data
 ```
 
     ## # A tibble: 2,323 x 62
-    ##    url            timedelta n_tokens_title
-    ##    <chr>              <dbl>          <dbl>
-    ##  1 http://mashab~       731              8
-    ##  2 http://mashab~       731              8
-    ##  3 http://mashab~       731              9
-    ##  4 http://mashab~       731             10
-    ##  5 http://mashab~       729              9
-    ##  6 http://mashab~       729              9
-    ##  7 http://mashab~       729             10
-    ##  8 http://mashab~       728              7
-    ##  9 http://mashab~       727              8
-    ## 10 http://mashab~       727              6
+    ##    url           timedelta n_tokens_title
+    ##    <chr>             <dbl>          <dbl>
+    ##  1 http://masha~       731              8
+    ##  2 http://masha~       731              8
+    ##  3 http://masha~       731              9
+    ##  4 http://masha~       731             10
+    ##  5 http://masha~       729              9
+    ##  6 http://masha~       729              9
+    ##  7 http://masha~       729             10
+    ##  8 http://masha~       728              7
+    ##  9 http://masha~       727              8
+    ## 10 http://masha~       727              6
     ## # ... with 2,313 more rows, and 59 more
     ## #   variables: n_tokens_content <dbl>,
     ## #   n_unique_tokens <dbl>,
@@ -347,18 +347,19 @@ sapply(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_to
 
 From here we can compare standard deviation between numeric variables.
 
--   Correlation between numeric predictors
+-   Correlation between numeric variables
 
 ``` r
-Correlation <- cor(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
+#str(train)
+Correlation <- cor(train %>% select(-url, -type, -starts_with("weekday"), -starts_with("data_channel"), -is_weekend ))
 corrplot(Correlation, type="upper", tl.pos="lt", cl.cex=0.8)
 ```
 
 ![](/documents/socmed_files/figure-gfm/unnamed-chunk-6-1.png)
 
-This plot help us to check linear relationship between predictors. We
-want to avoid include predictors with high correlation in the same
-model.
+This plot help us to check linear relationship between numeric
+variables. We want to avoid include predictors with high correlation in
+the same model.
 
 -   summary across different day of the week
 
@@ -376,15 +377,15 @@ train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares
 ```
 
     ## # A tibble: 7 x 6
-    ##   weekday      n   min    max   avg median
-    ##   <chr>    <int> <dbl>  <dbl> <dbl>  <dbl>
-    ## 1 Friday     227   213  57000 4226.   2200
-    ## 2 Monday     240   200  57600 4079.   2550
-    ## 3 Saturday   124   217  34500 3567.   2300
-    ## 4 Sunday      92   636  54100 5273.   2750
-    ## 5 Thursday   324   165  26900 3227.   2100
-    ## 6 Tuesday    318   238 122800 3594.   1900
-    ## 7 Wednesd~   302   398  59000 3486.   2000
+    ##   weekday     n   min    max   avg median
+    ##   <chr>   <int> <dbl>  <dbl> <dbl>  <dbl>
+    ## 1 Friday    227   213  57000 4226.   2200
+    ## 2 Monday    240   200  57600 4079.   2550
+    ## 3 Saturd~   124   217  34500 3567.   2300
+    ## 4 Sunday     92   636  54100 5273.   2750
+    ## 5 Thursd~   324   165  26900 3227.   2100
+    ## 6 Tuesday   318   238 122800 3594.   1900
+    ## 7 Wednes~   302   398  59000 3486.   2000
 
 We can inspect the effect of `weekday` on the `share`. The number of
 records on each day as well as the minimum, maximum, mean and median
@@ -396,10 +397,24 @@ We also can check the difference in plot.
 
 ``` r
 g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
-g + geom_freqpoly(aes(color=weekday))
+g + geom_freqpoly(aes(color=weekday)) +
+  ggtitle("Counts of shares across day of the week")
 ```
 
 ![](/documents/socmed_files/figure-gfm/unnamed-chunk-8-1.png)
+
+``` r
+ggplot(train, aes(x=weekday, y=shares)) +
+  geom_boxplot() +
+  scale_y_continuous(limits=c(min(train$shares), quantile(train$shares, p=0.75)+IQR(train$shares))) +
+  ggtitle("box plot of shares across day of the week")
+```
+
+![](/documents/socmed_files/figure-gfm/unnamed-chunk-9-1.png)
+
+In this plot, we can compare the median, 25% percentile, 75% percentile
+and IQR of shares between different day of the week. It will show the
+effect of day on the shares.
 
 -   Scatter plot
 
@@ -408,22 +423,20 @@ other predictors through scatter plot. Linear or non-linear? Positive or
 negative?
 
 ``` r
-g <- ggplot(train, aes(x=num_self_hrefs, y=shares, col=weekday) )
-g + geom_point()
-```
-
-![](/documents/socmed_files/figure-gfm/unnamed-chunk-9-1.png)
-
-``` r
-g <- ggplot(train, aes(x=num_imgs, y=shares, col=weekday) )
-g + geom_point()
+g <- ggplot(train, aes(x=num_self_hrefs, y=shares) )
+g + geom_jitter() +
+    scale_y_continuous(limits=c(min(train$shares), quantile(train$shares, p=0.75)+2*IQR(train$shares))) +
+    scale_x_continuous(limits=c(min(train$num_self_hrefs), quantile(train$num_self_hrefs, p=0.75)+2*IQR(train$num_self_hrefs))) +
+    ggtitle("scatter plot of shares against number of links") 
 ```
 
 ![](/documents/socmed_files/figure-gfm/unnamed-chunk-10-1.png)
 
 ``` r
-g <- ggplot(train, aes(x=rate_positive_words, y=shares, col=weekday) )
-g + geom_point()
+g <- ggplot(train, aes(x=rate_positive_words, y=shares) )
+g + geom_point() +
+  scale_y_continuous(limits=c(min(train$shares), quantile(train$shares, p=0.75)+2*IQR(train$shares))) +
+  ggtitle("scatter plot of shares against rate of positive words")
 ```
 
 ![](/documents/socmed_files/figure-gfm/unnamed-chunk-11-1.png)
@@ -433,22 +446,23 @@ g + geom_point()
 ### Linear Regression
 
 ``` r
-mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="lm", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10))
+mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos, data=train, method="lm", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10))
 mlFit
 ```
 
     ## Linear Regression 
     ## 
     ## 1627 samples
-    ##    6 predictor
+    ##    5 predictor
     ## 
-    ## Pre-processing: centered (11), scaled (11) 
+    ## Pre-processing: centered (10),
+    ##  scaled (10) 
     ## Resampling: Cross-Validated (10 fold) 
-    ## Summary of sample sizes: 1465, 1464, 1465, 1463, 1464, 1464, ... 
+    ## Summary of sample sizes: 1463, 1465, 1464, 1464, 1465, 1464, ... 
     ## Resampling results:
     ## 
     ##   RMSE      Rsquared     MAE     
-    ##   5856.472  0.005296394  2839.669
+    ##   5429.736  0.009732293  2844.409
     ## 
     ## Tuning parameter 'intercept' was
     ##  held constant at a value of TRUE
@@ -484,14 +498,14 @@ comp
 ```
 
     ##            LR  Boosted
-    ## RMSE 3938.956 3928.958
+    ## RMSE 3946.262 3980.332
 
 ``` r
 best_model <- which.min(comp["RMSE",])
 best_model
 ```
 
-    ## Boosted 
-    ##       2
+    ## LR 
+    ##  1
 
-Boosted has the minimum MSE which indicates the best fitting.
+LR has the minimum MSE which indicates the best fitting.
