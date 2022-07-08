@@ -124,30 +124,30 @@ type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "life
 
 ``` r
 # select data for data channel of interest
-target_data <- type_data %>% filter(type == params[[1]]$filter_type) 
+target_data <- type_data %>% filter(type == params$filter_type) 
 target_data
 ```
 
-    ## # A tibble: 7,057 x 62
-    ##    url               timedelta
-    ##    <chr>                 <dbl>
-    ##  1 http://mashable.~       731
-    ##  2 http://mashable.~       731
-    ##  3 http://mashable.~       731
-    ##  4 http://mashable.~       731
-    ##  5 http://mashable.~       731
-    ##  6 http://mashable.~       731
-    ##  7 http://mashable.~       731
-    ##  8 http://mashable.~       730
-    ##  9 http://mashable.~       730
-    ## 10 http://mashable.~       729
-    ## # ... with 7,047 more rows,
-    ## #   and 60 more variables:
-    ## #   n_tokens_title <dbl>,
-    ## #   n_tokens_content <dbl>,
+    ## # A tibble: 6,258 x 62
+    ##    url            timedelta n_tokens_title
+    ##    <chr>              <dbl>          <dbl>
+    ##  1 http://mashab~       731              9
+    ##  2 http://mashab~       731              9
+    ##  3 http://mashab~       731              8
+    ##  4 http://mashab~       731             13
+    ##  5 http://mashab~       731             11
+    ##  6 http://mashab~       731              8
+    ##  7 http://mashab~       731             10
+    ##  8 http://mashab~       731             12
+    ##  9 http://mashab~       731              6
+    ## 10 http://mashab~       730             13
+    ## # ... with 6,248 more rows, and 59 more
+    ## #   variables: n_tokens_content <dbl>,
     ## #   n_unique_tokens <dbl>,
     ## #   n_non_stop_words <dbl>,
-    ## #   n_non_stop_unique_tokens <dbl>, ...
+    ## #   n_non_stop_unique_tokens <dbl>,
+    ## #   num_hrefs <dbl>,
+    ## #   num_self_hrefs <dbl>, ...
 
 -   Split data into train and test sets
 
@@ -159,7 +159,7 @@ test <- target_data[-train_index, ]
 dim(train)
 ```
 
-    ## [1] 4940   62
+    ## [1] 4381   62
 
 ## Summarizations on train set
 
@@ -169,172 +169,123 @@ dim(train)
 summary(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
 ```
 
-    ##    timedelta    
-    ##  Min.   :  8.0  
-    ##  1st Qu.:147.0  
-    ##  Median :305.0  
-    ##  Mean   :333.1  
-    ##  3rd Qu.:520.0  
-    ##  Max.   :731.0  
-    ##  n_tokens_title
-    ##  Min.   : 3    
-    ##  1st Qu.:10    
-    ##  Median :11    
-    ##  Mean   :11    
-    ##  3rd Qu.:12    
-    ##  Max.   :18    
-    ##  n_tokens_content
-    ##  Min.   :   0.0  
-    ##  1st Qu.: 252.0  
-    ##  Median : 428.0  
-    ##  Mean   : 603.1  
-    ##  3rd Qu.: 796.0  
-    ##  Max.   :6505.0  
-    ##  n_unique_tokens   
-    ##  Min.   :  0.0000  
-    ##  1st Qu.:  0.4703  
-    ##  Median :  0.5426  
-    ##  Mean   :  0.6747  
-    ##  3rd Qu.:  0.6182  
-    ##  Max.   :701.0000  
+    ##    timedelta     n_tokens_title
+    ##  Min.   :  8.0   Min.   : 3.0  
+    ##  1st Qu.:204.0   1st Qu.: 9.0  
+    ##  Median :385.0   Median :10.0  
+    ##  Mean   :381.6   Mean   :10.3  
+    ##  3rd Qu.:567.0   3rd Qu.:12.0  
+    ##  Max.   :731.0   Max.   :19.0  
+    ##  n_tokens_content n_unique_tokens 
+    ##  Min.   :   0.0   Min.   :0.0000  
+    ##  1st Qu.: 245.0   1st Qu.:0.4783  
+    ##  Median : 400.0   Median :0.5486  
+    ##  Mean   : 538.2   Mean   :0.5462  
+    ##  3rd Qu.: 729.0   3rd Qu.:0.6108  
+    ##  Max.   :4747.0   Max.   :0.8732  
     ##  n_non_stop_unique_tokens
-    ##  Min.   :  0.0000        
-    ##  1st Qu.:  0.6231        
-    ##  Median :  0.6911        
-    ##  Mean   :  0.8031        
-    ##  3rd Qu.:  0.7611        
-    ##  Max.   :650.0000        
-    ##    num_hrefs     
-    ##  Min.   :  0.00  
-    ##  1st Qu.:  4.00  
-    ##  Median :  7.00  
-    ##  Mean   : 10.78  
-    ##  3rd Qu.: 14.00  
-    ##  Max.   :187.00  
-    ##  num_self_hrefs  
-    ##  Min.   : 0.000  
-    ##  1st Qu.: 1.000  
-    ##  Median : 3.000  
-    ##  Mean   : 3.502  
-    ##  3rd Qu.: 5.000  
-    ##  Max.   :36.000  
-    ##     num_imgs      
-    ##  Min.   :  0.000  
-    ##  1st Qu.:  1.000  
-    ##  Median :  1.000  
-    ##  Mean   :  6.316  
-    ##  3rd Qu.:  8.000  
-    ##  Max.   :101.000  
-    ##    num_videos    
-    ##  Min.   : 0.000  
-    ##  1st Qu.: 0.000  
-    ##  Median : 1.000  
-    ##  Mean   : 2.506  
-    ##  3rd Qu.: 1.000  
-    ##  Max.   :74.000  
-    ##  average_token_length
-    ##  Min.   :0.000       
-    ##  1st Qu.:4.426       
-    ##  Median :4.583       
-    ##  Mean   :4.476       
-    ##  3rd Qu.:4.754       
-    ##  Max.   :7.696       
-    ##   num_keywords   
-    ##  Min.   : 2.000  
-    ##  1st Qu.: 5.000  
-    ##  Median : 7.000  
-    ##  Mean   : 6.945  
-    ##  3rd Qu.: 8.000  
-    ##  Max.   :10.000  
+    ##  Min.   :0.0000          
+    ##  1st Qu.:0.6491          
+    ##  Median :0.7043          
+    ##  Mean   :0.7038          
+    ##  3rd Qu.:0.7603          
+    ##  Max.   :0.9730          
+    ##    num_hrefs       num_self_hrefs  
+    ##  Min.   :  0.000   Min.   : 0.000  
+    ##  1st Qu.:  4.000   1st Qu.: 1.000  
+    ##  Median :  7.000   Median : 2.000  
+    ##  Mean   :  9.283   Mean   : 2.764  
+    ##  3rd Qu.: 11.000   3rd Qu.: 4.000  
+    ##  Max.   :102.000   Max.   :56.000  
+    ##     num_imgs        num_videos    
+    ##  Min.   : 0.000   Min.   : 0.000  
+    ##  1st Qu.: 1.000   1st Qu.: 0.000  
+    ##  Median : 1.000   Median : 0.000  
+    ##  Mean   : 1.786   Mean   : 0.617  
+    ##  3rd Qu.: 1.000   3rd Qu.: 0.000  
+    ##  Max.   :40.000   Max.   :75.000  
+    ##  average_token_length  num_keywords   
+    ##  Min.   :0.000        Min.   : 2.000  
+    ##  1st Qu.:4.527        1st Qu.: 5.000  
+    ##  Median :4.686        Median : 6.000  
+    ##  Mean   :4.688        Mean   : 6.481  
+    ##  3rd Qu.:4.860        3rd Qu.: 8.000  
+    ##  Max.   :5.960        Max.   :10.000  
     ##  self_reference_avg_sharess
     ##  Min.   :     0            
-    ##  1st Qu.:  1088            
-    ##  Median :  2086            
-    ##  Mean   :  4850            
-    ##  3rd Qu.:  4844            
-    ##  Max.   :143100            
+    ##  1st Qu.:   549            
+    ##  Median :  2000            
+    ##  Mean   :  6017            
+    ##  3rd Qu.:  4300            
+    ##  Max.   :690400            
     ##  self_reference_min_shares
     ##  Min.   :     0           
-    ##  1st Qu.:   702           
+    ##  1st Qu.:   164           
     ##  Median :  1100           
-    ##  Mean   :  2674           
-    ##  3rd Qu.:  2000           
-    ##  Max.   :143100           
+    ##  Mean   :  3375           
+    ##  3rd Qu.:  2200           
+    ##  Max.   :690400           
     ##  self_reference_max_shares
     ##  Min.   :     0           
-    ##  1st Qu.:  1200           
-    ##  Median :  2700           
-    ##  Mean   :  8512           
-    ##  3rd Qu.:  9100           
-    ##  Max.   :837700           
+    ##  1st Qu.:   577           
+    ##  Median :  2500           
+    ##  Mean   : 10212           
+    ##  3rd Qu.:  6100           
+    ##  Max.   :690400           
     ##  global_rate_negative_words
-    ##  Min.   :0.00000           
-    ##  1st Qu.:0.01060           
-    ##  Median :0.01709           
-    ##  Mean   :0.01881           
-    ##  3rd Qu.:0.02469           
-    ##  Max.   :0.09358           
+    ##  Min.   :0.000000          
+    ##  1st Qu.:0.009091          
+    ##  Median :0.014085          
+    ##  Mean   :0.014750          
+    ##  3rd Qu.:0.019305          
+    ##  Max.   :0.064220          
     ##  global_rate_positive_words
     ##  Min.   :0.00000           
-    ##  1st Qu.:0.02963           
-    ##  Median :0.04048           
-    ##  Mean   :0.04044           
-    ##  3rd Qu.:0.05119           
-    ##  Max.   :0.15278           
+    ##  1st Qu.:0.03214           
+    ##  Median :0.04235           
+    ##  Mean   :0.04329           
+    ##  3rd Qu.:0.05365           
+    ##  Max.   :0.12500           
     ##  global_sentiment_polarity
-    ##  Min.   :-0.37766         
-    ##  1st Qu.: 0.04881         
-    ##  Median : 0.11209         
-    ##  Mean   : 0.11175         
-    ##  3rd Qu.: 0.17154         
-    ##  Max.   : 0.72784         
-    ##  global_subjectivity
-    ##  Min.   :0.0000     
-    ##  1st Qu.:0.4128     
-    ##  Median :0.4642     
-    ##  Mean   :0.4531     
-    ##  3rd Qu.:0.5144     
-    ##  Max.   :1.0000     
-    ##  rate_negative_words
-    ##  Min.   :0.0000     
-    ##  1st Qu.:0.2000     
-    ##  Median :0.2989     
-    ##  Mean   :0.3027     
-    ##  3rd Qu.:0.4000     
-    ##  Max.   :1.0000     
-    ##  rate_positive_words
-    ##  Min.   :0.0000     
-    ##  1st Qu.:0.5833     
-    ##  Median :0.6923     
-    ##  Mean   :0.6681     
-    ##  3rd Qu.:0.7857     
-    ##  Max.   :1.0000     
-    ##  title_subjectivity
-    ##  Min.   :0.0000    
-    ##  1st Qu.:0.0000    
-    ##  Median :0.2889    
-    ##  Mean   :0.3126    
-    ##  3rd Qu.:0.5000    
-    ##  Max.   :1.0000    
+    ##  Min.   :-0.2176          
+    ##  1st Qu.: 0.0839          
+    ##  Median : 0.1356          
+    ##  Mean   : 0.1357          
+    ##  3rd Qu.: 0.1852          
+    ##  Max.   : 0.5737          
+    ##  global_subjectivity rate_negative_words
+    ##  Min.   :0.0000      Min.   :0.0000     
+    ##  1st Qu.:0.3866      1st Qu.:0.1667     
+    ##  Median :0.4409      Median :0.2500     
+    ##  Mean   :0.4365      Mean   :0.2581     
+    ##  3rd Qu.:0.4894      3rd Qu.:0.3333     
+    ##  Max.   :1.0000      Max.   :1.0000     
+    ##  rate_positive_words title_subjectivity
+    ##  Min.   :0.0000      Min.   :0.0000    
+    ##  1st Qu.:0.6667      1st Qu.:0.0000    
+    ##  Median :0.7500      Median :0.1000    
+    ##  Mean   :0.7382      Mean   :0.2491    
+    ##  3rd Qu.:0.8333      3rd Qu.:0.4750    
+    ##  Max.   :1.0000      Max.   :1.0000    
     ##  title_sentiment_polarity
     ##  Min.   :-1.00000        
     ##  1st Qu.: 0.00000        
     ##  Median : 0.00000        
-    ##  Mean   : 0.06414        
-    ##  3rd Qu.: 0.16667        
+    ##  Mean   : 0.08099        
+    ##  3rd Qu.: 0.13636        
     ##  Max.   : 1.00000        
     ##  abs_title_sentiment_polarity
-    ##  Min.   :0.00000             
-    ##  1st Qu.:0.00000             
-    ##  Median :0.06818             
-    ##  Mean   :0.16890             
-    ##  3rd Qu.:0.29167             
-    ##  Max.   :1.00000             
+    ##  Min.   :0.0000              
+    ##  1st Qu.:0.0000              
+    ##  Median :0.0000              
+    ##  Mean   :0.1396              
+    ##  3rd Qu.:0.2121              
+    ##  Max.   :1.0000              
     ##  abs_title_subjectivity
     ##  Min.   :0.0000        
-    ##  1st Qu.:0.1250        
-    ##  Median :0.4000        
-    ##  Mean   :0.3232        
+    ##  1st Qu.:0.1648        
+    ##  Median :0.5000        
+    ##  Mean   :0.3398        
     ##  3rd Qu.:0.5000        
     ##  Max.   :0.5000
 
@@ -346,53 +297,53 @@ sapply(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_to
 ```
 
     ##                    timedelta 
-    ##                 2.096288e+02 
+    ##                 2.084392e+02 
     ##               n_tokens_title 
-    ##                 2.092896e+00 
+    ##                 2.156898e+00 
     ##             n_tokens_content 
-    ##                 5.310665e+02 
+    ##                 4.258133e+02 
     ##              n_unique_tokens 
-    ##                 9.967041e+00 
+    ##                 1.004417e-01 
     ##     n_non_stop_unique_tokens 
-    ##                 9.239835e+00 
+    ##                 9.472628e-02 
     ##                    num_hrefs 
-    ##                 1.287618e+01 
+    ##                 8.115511e+00 
     ##               num_self_hrefs 
-    ##                 3.136078e+00 
+    ##                 2.824893e+00 
     ##                     num_imgs 
-    ##                 1.147419e+01 
+    ##                 3.343843e+00 
     ##                   num_videos 
-    ##                 6.185936e+00 
+    ##                 3.343203e+00 
     ##         average_token_length 
-    ##                 8.150547e-01 
+    ##                 3.886922e-01 
     ##                 num_keywords 
-    ##                 1.914197e+00 
+    ##                 1.963925e+00 
     ##   self_reference_avg_sharess 
-    ##                 9.570805e+03 
+    ##                 2.678431e+04 
     ##    self_reference_min_shares 
-    ##                 6.894799e+03 
+    ##                 2.022250e+04 
     ##    self_reference_max_shares 
-    ##                 2.343502e+04 
+    ##                 4.785129e+04 
     ##   global_rate_negative_words 
-    ##                 1.225443e-02 
+    ##                 8.560499e-03 
     ##   global_rate_positive_words 
-    ##                 1.685006e-02 
+    ##                 1.635989e-02 
     ##    global_sentiment_polarity 
-    ##                 9.988602e-02 
+    ##                 8.265347e-02 
     ##          global_subjectivity 
-    ##                 1.134283e-01 
+    ##                 8.452655e-02 
     ##          rate_negative_words 
-    ##                 1.544505e-01 
+    ##                 1.375670e-01 
     ##          rate_positive_words 
-    ##                 1.857673e-01 
+    ##                 1.438000e-01 
     ##           title_subjectivity 
-    ##                 3.261990e-01 
+    ##                 2.980393e-01 
     ##     title_sentiment_polarity 
-    ##                 2.753137e-01 
+    ##                 2.389479e-01 
     ## abs_title_sentiment_polarity 
-    ##                 2.266685e-01 
+    ##                 2.101250e-01 
     ##       abs_title_subjectivity 
-    ##                 1.922774e-01
+    ##                 1.905357e-01
 
 From here we can compare standard deviation between numeric variables.
 
@@ -400,10 +351,10 @@ From here we can compare standard deviation between numeric variables.
 
 ``` r
 Correlation <- cor(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
-corrplot(Correlation, type="upper", tl.pos="lt")
+corrplot(Correlation, type="upper", tl.pos="lt", cl.cex=0.8)
 ```
 
-![](/documents/bus_files/figure-gfm/unnamed-chunk-6-1.png)
+![](C:/NCSU/Git/ST558_Project2/documents/bus_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 This plot help us to check linear relationship between predictors. We
 want to avoid include predictors with high correlation in the same
@@ -425,17 +376,15 @@ train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares
 ```
 
     ## # A tibble: 7 x 6
-    ##   weekday       n   min    max
-    ##   <chr>     <int> <dbl>  <dbl>
-    ## 1 Friday      705    82 210300
-    ## 2 Monday      937    59  77200
-    ## 3 Saturday    268    65  68300
-    ## 4 Sunday      379   171  69500
-    ## 5 Thursday    822    57 197600
-    ## 6 Tuesday     903    47  98000
-    ## 7 Wednesday   926    49 109500
-    ## # ... with 2 more variables:
-    ## #   avg <dbl>, median <dbl>
+    ##   weekday      n   min    max   avg median
+    ##   <chr>    <int> <dbl>  <dbl> <dbl>  <dbl>
+    ## 1 Friday     572    28 102200 2302.   1400
+    ## 2 Monday     803     1 690400 4381.   1400
+    ## 3 Saturday   168   150 144400 4392.   2600
+    ## 4 Sunday     250   692  56900 3663.   2200
+    ## 5 Thursday   861    99 306100 3121.   1300
+    ## 6 Tuesday    811    44 310800 2943.   1300
+    ## 7 Wednesd~   916    63 158900 2733.   1300
 
 We can inspect the effect of `weekday` on the `share`. The number of
 records on each day as well as the minimum, maximum, mean and median
@@ -450,7 +399,7 @@ g <- ggplot(train %>% filter(shares<quantile(shares, p=0.75)), aes(x=shares))
 g + geom_freqpoly(aes(color=weekday))
 ```
 
-![](/documents/bus_files/figure-gfm/unnamed-chunk-8-1.png)
+![](C:/NCSU/Git/ST558_Project2/documents/bus_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 -   Scatter plot
 
@@ -463,21 +412,21 @@ g <- ggplot(train, aes(x=num_self_hrefs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](/documents/bus_files/figure-gfm/unnamed-chunk-9-1.png)
+![](C:/NCSU/Git/ST558_Project2/documents/bus_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 g <- ggplot(train, aes(x=num_imgs, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](/documents/bus_files/figure-gfm/unnamed-chunk-10-1.png)
+![](C:/NCSU/Git/ST558_Project2/documents/bus_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
 g <- ggplot(train, aes(x=rate_positive_words, y=shares, col=weekday) )
 g + geom_point()
 ```
 
-![](/documents/bus_files/figure-gfm/unnamed-chunk-11-1.png)
+![](C:/NCSU/Git/ST558_Project2/documents/bus_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 
 ## Modeling
 
@@ -490,23 +439,19 @@ mlFit
 
     ## Linear Regression 
     ## 
-    ## 4940 samples
+    ## 4381 samples
     ##    6 predictor
     ## 
-    ## Pre-processing:
-    ##  centered (11), scaled (11) 
+    ## Pre-processing: centered (11), scaled (11) 
     ## Resampling: Cross-Validated (10 fold) 
-    ## Summary of sample sizes: 4447, 4446, 4446, 4446, 4445, 4446, ... 
+    ## Summary of sample sizes: 3943, 3942, 3943, 3942, 3944, 3943, ... 
     ## Resampling results:
     ## 
-    ##   RMSE      Rsquared   
-    ##   7622.548  0.003566227
-    ##   MAE     
-    ##   2889.731
+    ##   RMSE      Rsquared     MAE     
+    ##   13563.52  0.006490965  3006.454
     ## 
-    ## Tuning parameter
-    ##  held constant at a value
-    ##  of TRUE
+    ## Tuning parameter 'intercept' was
+    ##  held constant at a value of TRUE
 
 ### Tree-based model
 
@@ -538,15 +483,15 @@ comp <- data.frame(LR=ml_MSE, Boosted=boosted_MSE)
 comp
 ```
 
-    ##            LR Boosted
-    ## RMSE 7505.419 7469.46
+    ##            LR  Boosted
+    ## RMSE 6174.844 7208.973
 
 ``` r
 best_model <- which.min(comp["RMSE",])
 best_model
 ```
 
-    ## Boosted 
-    ##       2
+    ## LR 
+    ##  1
 
-Boosted has the minimum MSE which indicates the best fitting.
+LR has the minimum MSE which indicates the best fitting.

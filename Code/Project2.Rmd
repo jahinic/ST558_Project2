@@ -2,10 +2,12 @@
 title: "ST 558 Project 2"
 author: "John Hinic & Fang Wu"
 date: '2022-07-01'
+params:
+  filter_type: "bus"
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE )
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -98,7 +100,7 @@ type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "life
 
 ```{r}
 # select data for data channel of interest
-target_data <- type_data %>% filter(type == params[[1]]$filter_type) 
+target_data <- type_data %>% filter(type == params$filter_type) 
 target_data
 ```
 
@@ -132,7 +134,7 @@ From here we can compare standard deviation between numeric variables.
 
 ```{r}
 Correlation <- cor(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
-corrplot(Correlation, type="upper", tl.pos="lt")
+corrplot(Correlation, type="upper", tl.pos="lt", cl.cex=0.8)
 ```
 
 This plot help us to check linear relationship between predictors. We want to avoid include predictors with high correlation in the same model. 
