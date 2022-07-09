@@ -194,11 +194,43 @@ g + geom_point() +
 
 ## Modeling
 
-### Linear Regression
+We will be fitting 4 total models for comparison:
+
+- 2 linear regression models
+- 1 random forest model
+- 1 boosted tree model
+
+For all 4 models, we will use 10-fold cross-validation to select the best fit.
 
 ```{r}
-mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos, data=train, method="lm", preProcess=c("center", "scale"), trControl=trainControl(method="cv", number=10))
+control <- trainControl(method="cv", number=10)
+```
+
+
+### Linear Regression
+
+-----REGRESSION EXPLANATION PLACEHOLDER-----
+
+#### Fang
+
+```{r}
+mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos, data=train, method="lm", preProcess=c("center", "scale"), trControl=control)
 mlFit
+```
+
+#### John
+
+```{r John regression cache = TRUE}
+mlFit2 <- train(
+  shares ~ .,
+  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -starts_with("weekday"), -type, -is_weekend, -rate_negative_words),
+  method = "lmStepAIC",
+  preProcess = c("center", "scale"),
+  trControl = control,
+  trace = FALSE,
+  scope = list(upper = ~., lower = ~1)
+)
+mlFit2
 ```
 
 ### Tree-based model
