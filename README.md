@@ -16,6 +16,8 @@ Our goal is to predict the number of shares in social networks (popularity) with
 
 * corrplot: plotting correlation between variables.
 
+* GGally: ploting pairwise plot matrix
+
 * caret: preprocessing data, training model, doing cross validation and evaluating model on test sets. 
 
 ## Links to analysis for each type of article:
