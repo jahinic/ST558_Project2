@@ -11,10 +11,12 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
                       fig.path = paste0("../images/", params$filter_type, "/"))
 library(readr)
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 library(GGally)
 library(caret)
 library(corrplot)
+library(doParallel)
 #install.packages("devtools")
 #library(devtools)
 #install_github("AppliedDataSciencePartners/xgboostExplainer")
@@ -95,7 +97,20 @@ We'll use the `readr` and `dplyr` packages from the `tidyverse`. First, we are g
 raw_data <- read_csv("../Data/OnlineNewsPopularity.csv") 
 
 # create type column for different data channel
-type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "lifestyle", ifelse(data_channel_is_entertainment==1, "entertainment", ifelse(data_channel_is_bus==1, "bus", ifelse(data_channel_is_socmed==1, "socmed", ifelse(data_channel_is_tech==1, "tech", ifelse(data_channel_is_world==1, "world", NA)))))))
+type_data <- raw_data %>% 
+  mutate(
+    type=ifelse(data_channel_is_lifestyle==1, "lifestyle", 
+            ifelse(data_channel_is_entertainment==1, "entertainment", 
+                ifelse(data_channel_is_bus==1, "bus", 
+                    ifelse(data_channel_is_socmed==1, "socmed", 
+                        ifelse(data_channel_is_tech==1, "tech", 
+                            ifelse(data_channel_is_world==1, "world", NA)
+                            )
+                        )
+                    )
+                )
+            )
+  )
 ```
 
 -   Subset data channel of interest automatically with `params`
@@ -123,7 +138,7 @@ target_data <- type_data %>%
 target_data
 ```
 
--   Split data into train and test sets
+-   Split data into training and test sets
 
 ```{r}
 set.seed(100)
@@ -135,9 +150,9 @@ dim(train)
 
 ## Exploratory Data Analysis
 
-First, we can look at a basic summary and histograms of our target variable, the number of shares:
+First, we can look at a basic univariate summary and histograms of our target variable, the number of shares:
 
-```{r}
+```{r John summary 1}
 summary(train$shares)
 train %>% ggplot(aes(shares, ..ndensity..)) +
   geom_histogram() +
@@ -157,18 +172,6 @@ train %>% filter(shares<quantile(shares, p=0.9)) %>%
 
 In the numeric summary, one thing to look for is the mean compared to the median, as well as where the mean lies relative to the minimum and maximum values. If the mean is significantly higher than the median and/or much closer to the minimum than the maximum, that means our data is right skewed, which we can observe in the histograms. The mean shares value is included as a reference point on the histograms, and the subsetted histogram is included to account for any potential right-skew.
 
-Another thing we can look at is the relationship between the number of shares and the number of shares in referenced articles (min, max, and average).
-
-```{r}
-train %>% 
-  select(shares, self_reference_min_shares, self_reference_avg_sharess, self_reference_max_shares) %>% 
-  filter(shares<quantile(shares, p=0.9)) %>%
-  ggpairs(columnLabels = c("Shares", "Min. Ref. Shares", "Avg. Ref. Shares", "Max. Ref. Shares")) + 
-  theme_bw() +
-  labs(title = "(not including top 10% of shares)")
-```
-
-For this grid of plots, we will want to focus on the 
 
 -   descriptive statistics on numeric variables:
 
@@ -196,7 +199,7 @@ This plot help us to check linear relationship between numeric variables. We wan
 
 -   summary across different day of the week
 
-We are going to create a new variable named `weekday` and visualize share performance on different day of the week.
+We are going to visualize share performance on different day of the week.
 
 ```{r}
 # shares on different day
@@ -229,6 +232,19 @@ ggplot(train, aes(x=weekday, y=shares)) +
 
 In this plot, we can compare the median, 25% percentile, 75% percentile and IQR of shares between different day of the week. It will show the effect of day on the shares.
 
+We can also examine this relationship by binning the number of shares into groups and constructing a contingency table.
+
+```{r John summary 2}
+train %>%
+  mutate(Shares = cut(shares, c(seq(0, 10000, by = 1000), max(shares)), dig.lab = 6)) %>%
+  group_by(weekday, Shares) %>%
+  summarise(n = n()) %>%
+  pivot_wider(names_from = weekday, values_from = n, values_fill = 0) %>%
+  arrange(Shares)
+```
+
+With this contingency table, we can get an idea of how many shares articles tend to get across the different days. We can also observe which days have the most "viral" articles that get an extremely high number of shares.
+
 -   Scatter plot
 
 We want to check the relationship between response variable `share` and other predictors through scatter plot. Linear or non-linear? Positive or negative?
@@ -236,17 +252,46 @@ We want to check the relationship between response variable `share` and other pr
 ```{r}
 g <- ggplot(train, aes(x=num_self_hrefs, y=shares) )
 g + geom_jitter() +
-    scale_y_continuous(limits=c(min(train$shares), quantile(train$shares, p=0.75)+2*IQR(train$shares))) +
-    scale_x_continuous(limits=c(min(train$num_self_hrefs), quantile(train$num_self_hrefs, p=0.75)+2*IQR(train$num_self_hrefs))) +
+    scale_y_continuous(
+      limits=c(min(train$shares), quantile(train$shares, p=0.75)+2*IQR(train$shares))
+    ) +
+    scale_x_continuous(
+      limits=c(min(train$num_self_hrefs), quantile(train$num_self_hrefs, p=0.75)+2*IQR(train$num_self_hrefs))
+    ) +
     ggtitle("scatter plot of shares against number of links") 
 ```
 
 ```{r}
 g <- ggplot(train, aes(x=rate_positive_words, y=shares) )
 g + geom_point() +
-  scale_y_continuous(limits=c(min(train$shares), quantile(train$shares, p=0.75)+2*IQR(train$shares))) +
+  scale_y_continuous(
+    limits=c(min(train$shares), quantile(train$shares, p=0.75)+2*IQR(train$shares))
+  ) +
   ggtitle("scatter plot of shares against rate of positive words")
 ```
+
+We will also examine the relationship of number of shares with the absolute polarity of the title - perhaps articles with titles that have a more polarizing sentiment are more likely to get shares.
+
+```{r John summary 3}
+train %>% filter(shares<quantile(shares, p=0.9)) %>%
+  ggplot(aes(abs_title_sentiment_polarity, shares)) +
+  geom_jitter() +
+  labs(title = "Number of Shares by Abs. Title Sentiment Polarity", subtitle = "(excluding top 10% of shares)", x = "Absolute Title Polarity", y = "Shares") +
+  theme_bw()
+```
+
+Another thing we can examine is the relationship between the number of shares and the number of shares in referenced articles (min, max, and average).
+
+```{r John summary 4}
+train %>% 
+  select(shares, self_reference_min_shares, self_reference_avg_sharess, self_reference_max_shares) %>% 
+  filter(shares<quantile(shares, p=0.9)) %>%
+  ggpairs(columnLabels = c("Shares", "Min. Ref. Shares", "Avg. Ref. Shares", "Max. Ref. Shares")) + 
+  labs(title = "(excluding top 10% of shares)") +
+  theme_bw()
+```
+
+For this grid of plots, we will want to focus on the column/row for shares. We can visually see the relationship between number of shares for an article vs. the number of shares in its referenced articles by examining the scatter plots, or look at the actual numeric correlations. We just want a general idea of whether the relationships are positive or negative, as well as linear or non-linear.
 
 ## Model Building
 
@@ -256,10 +301,16 @@ We will be fitting 4 total models for comparison:
 -   1 random forest model
 -   1 boosted tree model
 
-For all 4 models, we will use 10-fold cross-validation to select the best fit.
+For the 2 linear regression models, we will use basic 10-fold cross validation to evaluate the fit on the training data, while using 5-fold 3-times repeated cross-validation for the tree-based models. To ease the computation time, we will also utilize parallel processing, which will require a bit of set-up.
 
-```{r}
-control <- trainControl(method="cv", number=10)
+```{r John setup}
+# control setup
+controlLR <- trainControl(method = "cv", number = 10, allowParallel = TRUE)
+controlTree <- trainControl(method = "repeatedcv", number = 5, repeats = 3, allowParallel = TRUE)
+
+# parallel setup
+cl <- makeCluster(detectCores() - 2)
+registerDoParallel(cl)
 ```
 
 ### Linear Regression Models
@@ -268,20 +319,22 @@ control <- trainControl(method="cv", number=10)
 
 #### Fang
 
-```{r eval=FALSE}
-mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos, data=train, method="lm", preProcess=c("center", "scale"), trControl=control)
+```{r}
+mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos, data=train, method="lm", preProcess=c("center", "scale"), trControl=controlLR)
 mlFit
 ```
 
 #### John
 
-```{r John regression, eval=FALSE}
+This model will use stepwise regression to select the optimal model based on the AIC metric, considering all possible predictive variables (aside from the Sunday indicator, weekend indicator, and the rate of negative words, which all caused )
+
+```{r John regression}
 mlrFit2 <- train(
   shares ~ .,
-  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -starts_with("weekday"), -type, -is_weekend, -rate_negative_words),
+  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday, -weekday_is_sunday, -type, -is_weekend),
   method = "lmStepAIC",
   preProcess = c("center", "scale"),
-  trControl = control,
+  trControl = controlLR,
   trace = FALSE,
   scope = list(upper = ~., lower = ~1)
 )
@@ -301,29 +354,23 @@ Regression trees have many benefits, and are very easily interpretable by lookin
 
 Random forest models use bootstrap sampling to fit many regression trees, each one using a random subset of predictors ($m$). This makes it so that predictions are not dominated by a small number of predictors, leading to more consistent results.
 
-The standard practice is to use $m = p/3$, where $p$ represents the total number of predictors. For this case, that means we would use $m = 53/3 \approx 18$ after removing all non-predictive variables from the dataset. Thus, we will consider $m$ values ranging anywhere from - to -, selecting the optimal model based on the model performance in 10-fold cross-validation.
+The standard practice is to use $m = p/3$, where $p$ represents the total number of predictors. For this case, that means we would use $m = 53/3 \approx 18$ after removing all non-predictive variables from the dataset. Thus, we will consider $m$ values ranging anywhere from 1 to 24, selecting the optimal model based on the model performance in repeated cross-validation.
 
-We will also ease the computational time by using parallel processing for this model, which requires a bit of setup first.
-
-```{r eval=FALSE}
-# parallel setup
-library(doParallel)
-cl <- makeCluster(detectCores() - 2)
-registerDoParallel(cl)
-controlRF <- trainControl(method = "cv", number = 10, allowParallel = TRUE)
-
+```{r John RF}
 # saving data as a matrix and vector to take up less memory across workers
 x <- as.matrix(train %>% select(-url, -timedelta, -starts_with("data_channel"), -shares, -type, -weekday))
 y <- train$shares
 
 # fitting model
+# to ease the computation time to create output, mtry values of 1-10 were the only ones tested in the final program
+# tuning values of 1 through 24 were still tested before creating final product.
 set.seed(91894)
 rf <- train(
   x, y,
   method = "rf",
   preProcess = c("center", "scale"),
-  trControl = controlRF,
-  tuneGrid = data.frame(mtry = 1:24),
+  trControl = controlTree,
+  tuneGrid = data.frame(mtry = 1:10),
   importance = TRUE,
   ntree = 500
 )
@@ -333,38 +380,59 @@ rf$results
 rf$bestTune
 varImp(rf)
 plot(varImp(rf), top = 20)
-stopCluster(cl)
 ```
-
 
 #### Boosted Trees
 
 Boosted trees model trains a bunch of trees sequentially. Each subsequent tree learns from the mistakes of the previous tree. So predictions get updated as trees grown. It is used for both regression and classification.
 
-```{r, eval=FALSE}
+```{r}
 n.trees=c(50, 100, 150)
 interaction.depth=c(2,3,4)
 shrinkage=c(0.1, 0.5)
 n.minobsinnode=c(10)
-tune_parameter <- expand.grid(n.trees=n.trees, interaction.depth=interaction.depth, shrinkage=shrinkage, n.minobsinnode=n.minobsinnode)
-boostedFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos+rate_positive_words, data=train, method="gbm", trControl=trainControl(method="repeatedcv", number=5, repeats=3), tuneGrid=tune_parameter)
+tune_parameter <- expand.grid(
+  n.trees=n.trees, 
+  interaction.depth=interaction.depth, 
+  shrinkage=shrinkage, 
+  n.minobsinnode=n.minobsinnode
+)
+
+boostedFit <- train(
+  shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos+rate_positive_words, 
+  data=train, 
+  method="gbm", 
+  trControl=controlTree, 
+  tuneGrid=tune_parameter
+)
 boostedFit
 ```
 
 ### Compare models on the test set
 
-```{r eval=FALSE}
+```{r}
 ml_pred <- predict(mlFit, test)
 ml_MSE <- postResample(test$shares, ml_pred)[1]
 boosted_pred <- predict(boostedFit, test)
 boosted_MSE <- postResample(test$shares, boosted_pred)[1]
 comp <- data.frame(LR=ml_MSE, Boosted=boosted_MSE)
 comp
+
+evalFit <- function(fit, modelName) {
+  pred <- predict(fit, test)
+  stats <- postResample(predML1, obs = test$shares)
+  statsDF <- data.frame(RMSE = stats[1], Rsq = stats[2], MAE = stats[3])
+  statsDF %>%
+    pivot_longer(RMSE:MAE, names_to = "metric", values_to = modelName)
+}
+predML1 <- predict(mlFit, test)
+resML1 <- postResample(predML1, obs = test$shares)
+
 ```
 
-```{r eval=FALSE}
+```{r}
 best_model <- which.min(comp["RMSE",])
 best_model
 ```
 
-`names(best_model)` has the minimum MSE which indicates the best fitting.
+`r names(best_model)` has the minimum MSE which indicates the best fitting.
