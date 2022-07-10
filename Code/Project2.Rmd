@@ -5,7 +5,8 @@ date: '2022-07-01'
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.path = "../images")
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      fig.path = paste0("../images/", params$filter_type, "/"))
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -265,14 +266,14 @@ control <- trainControl(method="cv", number=10)
 
 #### Fang
 
-```{r}
+```{r eval=FALSE}
 mlFit <- train(shares~timedelta+weekday+num_self_hrefs+num_imgs+num_videos, data=train, method="lm", preProcess=c("center", "scale"), trControl=control)
 mlFit
 ```
 
 #### John
 
-```{r John regression}
+```{r John regression, eval=FALSE}
 mlrFit2 <- train(
   shares ~ .,
   data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -starts_with("weekday"), -type, -is_weekend, -rate_negative_words),
@@ -302,7 +303,7 @@ The standard practice is to use $m = p/3$, where $p$ represents the total number
 
 We will also ease the computational time by using parallel processing for this model, which requires a bit of setup first.
 
-```{r}
+```{r eval=FALSE}
 # parallel setup
 library(doParallel)
 cl <- makeCluster(detectCores() - 2)
@@ -338,7 +339,7 @@ stopCluster(cl)
 
 Boosted trees model trains a bunch of trees sequentially. Each subsequent tree learns from the mistakes of the previous tree. So predictions get updated as trees grown. It is used for both regression and classification.
 
-```{r, results=FALSE}
+```{r, eval=FALSE}
 n.trees=c(50, 100, 150)
 interaction.depth=c(2,3,4)
 shrinkage=c(0.1, 0.5)
@@ -350,7 +351,7 @@ boostedFit
 
 ### Compare models on the test set
 
-```{r}
+```{r eval=FALSE}
 ml_pred <- predict(mlFit, test)
 ml_MSE <- postResample(test$shares, ml_pred)[1]
 boosted_pred <- predict(boostedFit, test)
@@ -359,9 +360,9 @@ comp <- data.frame(LR=ml_MSE, Boosted=boosted_MSE)
 comp
 ```
 
-```{r}
+```{r eval=FALSE}
 best_model <- which.min(comp["RMSE",])
 best_model
 ```
 
-`r names(best_model)` has the minimum MSE which indicates the best fitting.
+`names(best_model)` has the minimum MSE which indicates the best fitting.
