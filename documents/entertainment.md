@@ -549,13 +549,13 @@ mlFit
 
 This model will use stepwise regression to select the optimal model
 based on the AIC metric, considering all possible predictive variables
-(aside from the Sunday indicator, weekend indicator, and the rate of
-negative words, which all caused )
+(aside from the Sunday indicator and weekend indicator, which were
+removed to preserve linear independence in the model matrix).
 
 ``` r
 mlrFit2 <- train(
   shares ~ .,
-  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday, -weekday_is_sunday, -type, -is_weekend),
+  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday_is_sunday, -type, -is_weekend),
   method = "lmStepAIC",
   preProcess = c("center", "scale"),
   trControl = controlLR,
@@ -568,15 +568,15 @@ mlrFit2
     ## Linear Regression with Stepwise Selection 
     ## 
     ## 4940 samples
-    ##   50 predictor
+    ##   51 predictor
     ## 
-    ## Pre-processing: centered (50), scaled (50) 
+    ## Pre-processing: centered (56), scaled (56) 
     ## Resampling: Cross-Validated (10 fold) 
     ## Summary of sample sizes: 4445, 4446, 4446, 4445, 4446, 4446, ... 
     ## Resampling results:
     ## 
     ##   RMSE      Rsquared    MAE     
-    ##   7965.806  0.01219433  2963.193
+    ##   8550.558  0.01258187  2994.939
 
 ``` r
 summary(mlrFit2$finalModel)
@@ -588,41 +588,41 @@ summary(mlrFit2$finalModel)
     ##     n_non_stop_words + n_non_stop_unique_tokens + num_self_hrefs + 
     ##     average_token_length + kw_min_min + kw_max_min + kw_avg_min + 
     ##     kw_min_max + kw_min_avg + kw_max_avg + kw_avg_avg + self_reference_avg_sharess + 
-    ##     weekday_is_monday + weekday_is_tuesday + global_subjectivity + 
-    ##     global_sentiment_polarity + global_rate_positive_words, data = dat)
+    ##     global_subjectivity + global_sentiment_polarity + global_rate_positive_words + 
+    ##     weekdaySunday + weekday_is_saturday, data = dat)
     ## 
     ## Residuals:
     ##    Min     1Q Median     3Q    Max 
-    ## -31708  -2121  -1074     44 205617 
+    ## -31515  -2103  -1038     46 205938 
     ## 
     ## Coefficients:
     ##                            Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                  2936.3      110.0  26.692  < 2e-16 ***
-    ## n_tokens_content              756.5      181.6   4.165 3.17e-05 ***
-    ## n_unique_tokens            136696.4    29154.9   4.689 2.82e-06 ***
-    ## n_non_stop_words           -52243.0    16239.2  -3.217 0.001303 ** 
-    ## n_non_stop_unique_tokens   -84401.1    21875.3  -3.858 0.000116 ***
-    ## num_self_hrefs               -250.7      121.1  -2.070 0.038505 *  
-    ## average_token_length          295.2      150.7   1.958 0.050272 .  
-    ## kw_min_min                    583.6      123.0   4.746 2.14e-06 ***
-    ## kw_max_min                   3951.3      462.6   8.542  < 2e-16 ***
-    ## kw_avg_min                  -3505.8      458.6  -7.644 2.52e-14 ***
-    ## kw_min_max                   -250.6      131.1  -1.911 0.056016 .  
-    ## kw_min_avg                   -627.9      166.0  -3.783 0.000157 ***
-    ## kw_max_avg                   -582.9      275.7  -2.114 0.034544 *  
-    ## kw_avg_avg                   2038.8      290.3   7.024 2.45e-12 ***
-    ## self_reference_avg_sharess    477.1      113.9   4.189 2.85e-05 ***
-    ## weekday_is_monday            -202.2      113.3  -1.785 0.074391 .  
-    ## weekday_is_tuesday           -171.2      113.2  -1.511 0.130729    
-    ## global_subjectivity           305.9      153.1   1.998 0.045768 *  
-    ## global_sentiment_polarity     254.2      127.3   1.997 0.045925 *  
-    ## global_rate_positive_words   -270.2      143.7  -1.881 0.060028 .  
+    ## (Intercept)                  2936.3      110.0  26.697  < 2e-16 ***
+    ## n_tokens_content              752.8      181.7   4.144 3.46e-05 ***
+    ## n_unique_tokens            134883.0    29172.8   4.624 3.87e-06 ***
+    ## n_non_stop_words           -53282.6    16228.9  -3.283 0.001034 ** 
+    ## n_non_stop_unique_tokens   -81549.8    21915.7  -3.721 0.000201 ***
+    ## num_self_hrefs               -250.2      121.1  -2.067 0.038833 *  
+    ## average_token_length          285.0      150.8   1.890 0.058789 .  
+    ## kw_min_min                    581.3      123.0   4.726 2.35e-06 ***
+    ## kw_max_min                   3959.8      462.6   8.560  < 2e-16 ***
+    ## kw_avg_min                  -3499.8      458.6  -7.632 2.77e-14 ***
+    ## kw_min_max                   -238.2      131.2  -1.815 0.069554 .  
+    ## kw_min_avg                   -627.4      166.0  -3.779 0.000159 ***
+    ## kw_max_avg                   -581.8      275.7  -2.111 0.034861 *  
+    ## kw_avg_avg                   2020.9      290.2   6.963 3.77e-12 ***
+    ## self_reference_avg_sharess    473.5      113.9   4.159 3.26e-05 ***
+    ## global_subjectivity           308.0      153.1   2.013 0.044220 *  
+    ## global_sentiment_polarity     259.0      127.3   2.035 0.041893 *  
+    ## global_rate_positive_words   -262.6      143.6  -1.829 0.067456 .  
+    ## weekdaySunday                 233.1      110.9   2.103 0.035519 *  
+    ## weekday_is_saturday           162.1      110.6   1.465 0.142951    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 7732 on 4920 degrees of freedom
-    ## Multiple R-squared:  0.07076,    Adjusted R-squared:  0.06717 
-    ## F-statistic: 19.72 on 19 and 4920 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 7730 on 4920 degrees of freedom
+    ## Multiple R-squared:  0.07108,    Adjusted R-squared:  0.06749 
+    ## F-statistic: 19.81 on 19 and 4920 DF,  p-value: < 2.2e-16
 
 ### Tree-based Models
 
@@ -841,7 +841,7 @@ fits
 
     ##                      Model     RMSE          Rsq      MAE
     ## 1  First Linear Regression 7505.495 0.0008786526 2971.112
-    ## 2 Second Linear Regression 7497.839 0.0163115926 2971.327
+    ## 2 Second Linear Regression 7492.615 0.0171433002 2956.318
     ## 3            Random Forest 7368.166 0.0389501836 2914.246
     ## 4             Boosted Tree 7462.567 0.0110749004 2971.277
 

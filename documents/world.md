@@ -160,25 +160,25 @@ target_data
 ```
 
     ## # A tibble: 8,427 x 63
-    ##    url     timedelta n_tokens_title n_tokens_content n_unique_tokens n_non_stop_words n_non_stop_uniq~ num_hrefs num_self_hrefs num_imgs num_videos average_token_l~
-    ##    <chr>       <dbl>          <dbl>            <dbl>           <dbl>            <dbl>            <dbl>     <dbl>          <dbl>    <dbl>      <dbl>            <dbl>
-    ##  1 http:/~       731             10              231           0.636             1.00            0.797         4              1        1          1             5.09
-    ##  2 http:/~       731              9             1248           0.490             1.00            0.732        11              0        1          0             4.62
-    ##  3 http:/~       731             12              682           0.460             1.00            0.635        10              0        1          0             4.62
-    ##  4 http:/~       731              9              391           0.510             1.00            0.650         9              2        1          1             5.30
-    ##  5 http:/~       731             11              125           0.675             1.00            0.797         1              1        1          0             4.82
-    ##  6 http:/~       731             11              799           0.504             1.00            0.738         8              6        1          0             4.70
-    ##  7 http:/~       731             11              317           0.611             1.00            0.729         7              6        1          0             5.24
-    ##  8 http:/~       731             11              399           0.598             1.00            0.806         8              0        1          0             4.58
-    ##  9 http:/~       731              9              443           0.467             1.00            0.589         3              1        1          0             5.01
-    ## 10 http:/~       730             12              288           0.589             1.00            0.726         5              2        0          0             4.38
-    ## # ... with 8,417 more rows, and 51 more variables: num_keywords <dbl>, data_channel_is_lifestyle <dbl>, data_channel_is_entertainment <dbl>,
-    ## #   data_channel_is_bus <dbl>, data_channel_is_socmed <dbl>, data_channel_is_tech <dbl>, data_channel_is_world <dbl>, kw_min_min <dbl>, kw_max_min <dbl>,
-    ## #   kw_avg_min <dbl>, kw_min_max <dbl>, kw_max_max <dbl>, kw_avg_max <dbl>, kw_min_avg <dbl>, kw_max_avg <dbl>, kw_avg_avg <dbl>, self_reference_min_shares <dbl>,
-    ## #   self_reference_max_shares <dbl>, self_reference_avg_sharess <dbl>, weekday_is_monday <dbl>, weekday_is_tuesday <dbl>, weekday_is_wednesday <dbl>,
-    ## #   weekday_is_thursday <dbl>, weekday_is_friday <dbl>, weekday_is_saturday <dbl>, weekday_is_sunday <dbl>, is_weekend <dbl>, LDA_00 <dbl>, LDA_01 <dbl>,
-    ## #   LDA_02 <dbl>, LDA_03 <dbl>, LDA_04 <dbl>, global_subjectivity <dbl>, global_sentiment_polarity <dbl>, global_rate_positive_words <dbl>,
-    ## #   global_rate_negative_words <dbl>, rate_positive_words <dbl>, rate_negative_words <dbl>, avg_positive_polarity <dbl>, min_positive_polarity <dbl>, ...
+    ##    url               timedelta n_tokens_title n_tokens_content n_unique_tokens n_non_stop_words n_non_stop_uniq~ num_hrefs
+    ##    <chr>                 <dbl>          <dbl>            <dbl>           <dbl>            <dbl>            <dbl>     <dbl>
+    ##  1 http://mashable.~       731             10              231           0.636             1.00            0.797         4
+    ##  2 http://mashable.~       731              9             1248           0.490             1.00            0.732        11
+    ##  3 http://mashable.~       731             12              682           0.460             1.00            0.635        10
+    ##  4 http://mashable.~       731              9              391           0.510             1.00            0.650         9
+    ##  5 http://mashable.~       731             11              125           0.675             1.00            0.797         1
+    ##  6 http://mashable.~       731             11              799           0.504             1.00            0.738         8
+    ##  7 http://mashable.~       731             11              317           0.611             1.00            0.729         7
+    ##  8 http://mashable.~       731             11              399           0.598             1.00            0.806         8
+    ##  9 http://mashable.~       731              9              443           0.467             1.00            0.589         3
+    ## 10 http://mashable.~       730             12              288           0.589             1.00            0.726         5
+    ## # ... with 8,417 more rows, and 55 more variables: num_self_hrefs <dbl>, num_imgs <dbl>, num_videos <dbl>,
+    ## #   average_token_length <dbl>, num_keywords <dbl>, data_channel_is_lifestyle <dbl>, data_channel_is_entertainment <dbl>,
+    ## #   data_channel_is_bus <dbl>, data_channel_is_socmed <dbl>, data_channel_is_tech <dbl>, data_channel_is_world <dbl>,
+    ## #   kw_min_min <dbl>, kw_max_min <dbl>, kw_avg_min <dbl>, kw_min_max <dbl>, kw_max_max <dbl>, kw_avg_max <dbl>,
+    ## #   kw_min_avg <dbl>, kw_max_avg <dbl>, kw_avg_avg <dbl>, self_reference_min_shares <dbl>,
+    ## #   self_reference_max_shares <dbl>, self_reference_avg_sharess <dbl>, weekday_is_monday <dbl>, weekday_is_tuesday <dbl>,
+    ## #   weekday_is_wednesday <dbl>, weekday_is_thursday <dbl>, weekday_is_friday <dbl>, weekday_is_saturday <dbl>, ...
 
 -   Split data into training and test sets
 
@@ -248,34 +248,41 @@ summary(
 )
 ```
 
-    ##    timedelta     n_tokens_title  n_tokens_content n_unique_tokens  n_non_stop_unique_tokens   num_hrefs      num_self_hrefs      num_imgs         num_videos     
-    ##  Min.   :  8.0   Min.   : 4.00   Min.   :   0.0   Min.   :0.0000   Min.   :0.0000           Min.   :  0.00   Min.   : 0.000   Min.   :  0.000   Min.   : 0.0000  
-    ##  1st Qu.:107.0   1st Qu.: 9.00   1st Qu.: 332.0   1st Qu.:0.4656   1st Qu.:0.6286           1st Qu.:  5.00   1st Qu.: 1.000   1st Qu.:  1.000   1st Qu.: 0.0000  
-    ##  Median :240.0   Median :11.00   Median : 506.0   Median :0.5203   Median :0.6841           Median :  8.00   Median : 2.000   Median :  1.000   Median : 0.0000  
-    ##  Mean   :284.4   Mean   :10.59   Mean   : 594.8   Mean   :0.5098   Mean   :0.6642           Mean   : 10.19   Mean   : 2.402   Mean   :  2.852   Mean   : 0.5372  
-    ##  3rd Qu.:435.0   3rd Qu.:12.00   3rd Qu.: 763.0   3rd Qu.:0.5749   3rd Qu.:0.7351           3rd Qu.: 13.00   3rd Qu.: 3.000   3rd Qu.:  2.000   3rd Qu.: 1.0000  
-    ##  Max.   :731.0   Max.   :23.00   Max.   :7081.0   Max.   :0.9762   Max.   :1.0000           Max.   :161.00   Max.   :38.000   Max.   :100.000   Max.   :50.0000  
-    ##  average_token_length  num_keywords    self_reference_avg_sharess self_reference_min_shares self_reference_max_shares global_rate_negative_words
-    ##  Min.   :0.000        Min.   : 2.000   Min.   :     0.0           Min.   :     0.0          Min.   :     0            Min.   :0.00000           
-    ##  1st Qu.:4.651        1st Qu.: 6.000   1st Qu.:   641.8           1st Qu.:   451.5          1st Qu.:   660            1st Qu.:0.01092           
-    ##  Median :4.823        Median : 7.000   Median :  1400.0           Median :   968.0          Median :  1700            Median :0.01634           
-    ##  Mean   :4.670        Mean   : 7.277   Mean   :  4175.4           Mean   :  2937.9          Mean   :  6124            Mean   :0.01695           
-    ##  3rd Qu.:4.976        3rd Qu.: 9.000   3rd Qu.:  3100.0           3rd Qu.:  1800.0          3rd Qu.:  4400            3rd Qu.:0.02222           
-    ##  Max.   :6.124        Max.   :10.000   Max.   :690400.0           Max.   :690400.0          Max.   :690400            Max.   :0.07504           
-    ##  global_rate_positive_words global_sentiment_polarity global_subjectivity rate_negative_words rate_positive_words title_subjectivity title_sentiment_polarity
-    ##  Min.   :0.00000            Min.   :-0.35947          Min.   :0.0000      Min.   :0.0000      Min.   :0.0000      Min.   :0.0000     Min.   :-1.00000        
-    ##  1st Qu.:0.02174            1st Qu.: 0.02166          1st Qu.:0.3568      1st Qu.:0.2500      1st Qu.:0.5357      1st Qu.:0.0000     1st Qu.: 0.00000        
-    ##  Median :0.03058            Median : 0.07292          Median :0.4131      Median :0.3448      Median :0.6429      Median :0.0000     Median : 0.00000        
-    ##  Mean   :0.03124            Mean   : 0.07639          Mean   :0.4024      Mean   :0.3454      Mean   :0.6219      Mean   :0.2421     Mean   : 0.03156        
-    ##  3rd Qu.:0.03976            3rd Qu.: 0.12622          3rd Qu.:0.4657      3rd Qu.:0.4474      3rd Qu.:0.7391      3rd Qu.:0.4545     3rd Qu.: 0.06818        
-    ##  Max.   :0.11273            Max.   : 0.52000          Max.   :0.9500      Max.   :1.0000      Max.   :1.0000      Max.   :1.0000     Max.   : 1.00000        
-    ##  abs_title_sentiment_polarity abs_title_subjectivity
-    ##  Min.   :0.000                Min.   :0.000         
-    ##  1st Qu.:0.000                1st Qu.:0.200         
-    ##  Median :0.000                Median :0.500         
-    ##  Mean   :0.127                Mean   :0.361         
-    ##  3rd Qu.:0.200                3rd Qu.:0.500         
-    ##  Max.   :1.000                Max.   :0.500
+    ##    timedelta     n_tokens_title  n_tokens_content n_unique_tokens  n_non_stop_unique_tokens   num_hrefs     
+    ##  Min.   :  8.0   Min.   : 4.00   Min.   :   0.0   Min.   :0.0000   Min.   :0.0000           Min.   :  0.00  
+    ##  1st Qu.:107.0   1st Qu.: 9.00   1st Qu.: 332.0   1st Qu.:0.4656   1st Qu.:0.6286           1st Qu.:  5.00  
+    ##  Median :240.0   Median :11.00   Median : 506.0   Median :0.5203   Median :0.6841           Median :  8.00  
+    ##  Mean   :284.4   Mean   :10.59   Mean   : 594.8   Mean   :0.5098   Mean   :0.6642           Mean   : 10.19  
+    ##  3rd Qu.:435.0   3rd Qu.:12.00   3rd Qu.: 763.0   3rd Qu.:0.5749   3rd Qu.:0.7351           3rd Qu.: 13.00  
+    ##  Max.   :731.0   Max.   :23.00   Max.   :7081.0   Max.   :0.9762   Max.   :1.0000           Max.   :161.00  
+    ##  num_self_hrefs      num_imgs         num_videos      average_token_length  num_keywords    self_reference_avg_sharess
+    ##  Min.   : 0.000   Min.   :  0.000   Min.   : 0.0000   Min.   :0.000        Min.   : 2.000   Min.   :     0.0          
+    ##  1st Qu.: 1.000   1st Qu.:  1.000   1st Qu.: 0.0000   1st Qu.:4.651        1st Qu.: 6.000   1st Qu.:   641.8          
+    ##  Median : 2.000   Median :  1.000   Median : 0.0000   Median :4.823        Median : 7.000   Median :  1400.0          
+    ##  Mean   : 2.402   Mean   :  2.852   Mean   : 0.5372   Mean   :4.670        Mean   : 7.277   Mean   :  4175.4          
+    ##  3rd Qu.: 3.000   3rd Qu.:  2.000   3rd Qu.: 1.0000   3rd Qu.:4.976        3rd Qu.: 9.000   3rd Qu.:  3100.0          
+    ##  Max.   :38.000   Max.   :100.000   Max.   :50.0000   Max.   :6.124        Max.   :10.000   Max.   :690400.0          
+    ##  self_reference_min_shares self_reference_max_shares global_rate_negative_words global_rate_positive_words
+    ##  Min.   :     0.0          Min.   :     0            Min.   :0.00000            Min.   :0.00000           
+    ##  1st Qu.:   451.5          1st Qu.:   660            1st Qu.:0.01092            1st Qu.:0.02174           
+    ##  Median :   968.0          Median :  1700            Median :0.01634            Median :0.03058           
+    ##  Mean   :  2937.9          Mean   :  6124            Mean   :0.01695            Mean   :0.03124           
+    ##  3rd Qu.:  1800.0          3rd Qu.:  4400            3rd Qu.:0.02222            3rd Qu.:0.03976           
+    ##  Max.   :690400.0          Max.   :690400            Max.   :0.07504            Max.   :0.11273           
+    ##  global_sentiment_polarity global_subjectivity rate_negative_words rate_positive_words title_subjectivity
+    ##  Min.   :-0.35947          Min.   :0.0000      Min.   :0.0000      Min.   :0.0000      Min.   :0.0000    
+    ##  1st Qu.: 0.02166          1st Qu.:0.3568      1st Qu.:0.2500      1st Qu.:0.5357      1st Qu.:0.0000    
+    ##  Median : 0.07292          Median :0.4131      Median :0.3448      Median :0.6429      Median :0.0000    
+    ##  Mean   : 0.07639          Mean   :0.4024      Mean   :0.3454      Mean   :0.6219      Mean   :0.2421    
+    ##  3rd Qu.: 0.12622          3rd Qu.:0.4657      3rd Qu.:0.4474      3rd Qu.:0.7391      3rd Qu.:0.4545    
+    ##  Max.   : 0.52000          Max.   :0.9500      Max.   :1.0000      Max.   :1.0000      Max.   :1.0000    
+    ##  title_sentiment_polarity abs_title_sentiment_polarity abs_title_subjectivity
+    ##  Min.   :-1.00000         Min.   :0.000                Min.   :0.000         
+    ##  1st Qu.: 0.00000         1st Qu.:0.000                1st Qu.:0.200         
+    ##  Median : 0.00000         Median :0.000                Median :0.500         
+    ##  Mean   : 0.03156         Mean   :0.127                Mean   :0.361         
+    ##  3rd Qu.: 0.06818         3rd Qu.:0.200                3rd Qu.:0.500         
+    ##  Max.   : 1.00000         Max.   :1.000                Max.   :0.500
 
 We can find the minimum, 25% percentile, mean, median, 75% percentile
 and maximum values of each numeric variables from this chart.
@@ -292,14 +299,16 @@ sapply(
 )
 ```
 
-    ##                    timedelta               n_tokens_title             n_tokens_content              n_unique_tokens     n_non_stop_unique_tokens 
-    ##                 2.050209e+02                 2.095229e+00                 4.198629e+02                 1.249105e-01                 1.482345e-01 
-    ##                    num_hrefs               num_self_hrefs                     num_imgs                   num_videos         average_token_length 
-    ##                 9.341597e+00                 2.575797e+00                 5.310263e+00                 1.497516e+00                 8.902140e-01 
-    ##                 num_keywords   self_reference_avg_sharess    self_reference_min_shares    self_reference_max_shares   global_rate_negative_words 
-    ##                 1.890719e+00                 2.044365e+04                 1.855166e+04                 2.856195e+04                 9.286203e-03 
-    ##   global_rate_positive_words    global_sentiment_polarity          global_subjectivity          rate_negative_words          rate_positive_words 
-    ##                 1.433299e-02                 8.166989e-02                 1.093956e-01                 1.633576e-01                 1.890396e-01 
+    ##                    timedelta               n_tokens_title             n_tokens_content              n_unique_tokens 
+    ##                 2.050209e+02                 2.095229e+00                 4.198629e+02                 1.249105e-01 
+    ##     n_non_stop_unique_tokens                    num_hrefs               num_self_hrefs                     num_imgs 
+    ##                 1.482345e-01                 9.341597e+00                 2.575797e+00                 5.310263e+00 
+    ##                   num_videos         average_token_length                 num_keywords   self_reference_avg_sharess 
+    ##                 1.497516e+00                 8.902140e-01                 1.890719e+00                 2.044365e+04 
+    ##    self_reference_min_shares    self_reference_max_shares   global_rate_negative_words   global_rate_positive_words 
+    ##                 1.855166e+04                 2.856195e+04                 9.286203e-03                 1.433299e-02 
+    ##    global_sentiment_polarity          global_subjectivity          rate_negative_words          rate_positive_words 
+    ##                 8.166989e-02                 1.093956e-01                 1.633576e-01                 1.890396e-01 
     ##           title_subjectivity     title_sentiment_polarity abs_title_sentiment_polarity       abs_title_subjectivity 
     ##                 3.108686e-01                 2.376162e-01                 2.032910e-01                 1.811329e-01
 
@@ -549,13 +558,13 @@ mlFit
 
 This model will use stepwise regression to select the optimal model
 based on the AIC metric, considering all possible predictive variables
-(aside from the Sunday indicator, weekend indicator, and the rate of
-negative words, which all caused )
+(aside from the Sunday indicator and weekend indicator, which were
+removed to preserve linear independence in the model matrix).
 
 ``` r
 mlrFit2 <- train(
   shares ~ .,
-  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday, -weekday_is_sunday, -type, -is_weekend),
+  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday_is_sunday, -type, -is_weekend),
   method = "lmStepAIC",
   preProcess = c("center", "scale"),
   trControl = controlLR,
@@ -568,9 +577,9 @@ mlrFit2
     ## Linear Regression with Stepwise Selection 
     ## 
     ## 5899 samples
-    ##   50 predictor
+    ##   51 predictor
     ## 
-    ## Pre-processing: centered (50), scaled (50) 
+    ## Pre-processing: centered (56), scaled (56) 
     ## Resampling: Cross-Validated (10 fold) 
     ## Summary of sample sizes: 5310, 5310, 5307, 5307, 5310, 5308, ... 
     ## Resampling results:

@@ -549,13 +549,13 @@ mlFit
 
 This model will use stepwise regression to select the optimal model
 based on the AIC metric, considering all possible predictive variables
-(aside from the Sunday indicator, weekend indicator, and the rate of
-negative words, which all caused )
+(aside from the Sunday indicator and weekend indicator, which were
+removed to preserve linear independence in the model matrix).
 
 ``` r
 mlrFit2 <- train(
   shares ~ .,
-  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday, -weekday_is_sunday, -type, -is_weekend),
+  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday_is_sunday, -type, -is_weekend),
   method = "lmStepAIC",
   preProcess = c("center", "scale"),
   trControl = controlLR,
@@ -568,9 +568,9 @@ mlrFit2
     ## Linear Regression with Stepwise Selection 
     ## 
     ## 4381 samples
-    ##   50 predictor
+    ##   51 predictor
     ## 
-    ## Pre-processing: centered (50), scaled (50) 
+    ## Pre-processing: centered (56), scaled (56) 
     ## Resampling: Cross-Validated (10 fold) 
     ## Summary of sample sizes: 3943, 3943, 3943, 3943, 3942, 3943, ... 
     ## Resampling results:
