@@ -2,8 +2,6 @@
 title: "ST 558 Project 2"
 author: "John Hinic & Fang Wu"
 date: '2022-07-01'
-params:
-  filter_type: bus
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
