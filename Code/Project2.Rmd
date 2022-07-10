@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.path = 
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(GGally)
 library(caret)
 library(corrplot)
 #install.packages("devtools")
@@ -84,7 +85,7 @@ In order to predict the number of share, we are going to build linear regression
 
 ## Prepare Data
 
-We'll use the `readr` and `dplyr` packages from `tifyverse`. First, we are going to read in data as tibble using function `read_csv`. Next, in order to access different data channel of interest automatically, we are going to create a variable called `type`. Last we `filter` the data channel of interest using `params$` automatically.
+We'll use the `readr` and `dplyr` packages from the `tidyverse`. First, we are going to read in data as tibble using function `read_csv`. Next, in order to access different data channel of interest automatically, we are going to create a variable called `type`. Last we `filter` the data channel of interest using `params$` automatically.
 
 -   Read in raw data and create new variable `type`
 
@@ -99,8 +100,25 @@ type_data <- raw_data %>% mutate(type=ifelse(data_channel_is_lifestyle==1, "life
 -   Subset data channel of interest automatically with `params`
 
 ```{r}
-# select data for data channel of interest
-target_data <- type_data %>% filter(type == params$filter_type) 
+# select data for data channel of interest and create single weekday variable
+target_data <- type_data %>% 
+  filter(type == params$filter_type) %>%
+  mutate(
+    weekday=ifelse(
+      weekday_is_monday==1, "Monday", 
+        ifelse(weekday_is_tuesday==1, "Tuesday", 
+          ifelse(weekday_is_wednesday==1, "Wednesday", 
+            ifelse(weekday_is_thursday==1, "Thursday", 
+              ifelse(weekday_is_friday==1, "Friday", 
+                ifelse(weekday_is_saturday==1, "Saturday", 
+                  ifelse(weekday_is_sunday==1, "Sunday", NA)
+                  )
+                )
+              )
+            )
+          )
+      )
+    )
 target_data
 ```
 
@@ -114,7 +132,42 @@ test <- target_data[-train_index, ]
 dim(train)
 ```
 
-## Summarizations on train set
+## Exploratory Data Analysis
+
+First, we can look at a basic summary and histograms of our target variable, the number of shares:
+
+```{r}
+summary(train$shares)
+train %>% ggplot(aes(shares, ..ndensity..)) +
+  geom_histogram() +
+  geom_density() +
+  geom_vline(xintercept = mean(train$shares), linetype = 2, color = "red") +
+  theme_bw() +
+  labs(title = "Histogram of Number of Shares", x = "Shares", y = "Normalized Density")
+
+train %>% filter(shares<quantile(shares, p=0.9)) %>%
+  ggplot(aes(shares, ..ndensity..)) +
+  geom_histogram() +
+  geom_density() +
+  geom_vline(xintercept = mean(train$shares), linetype = 2, color = "red") +
+  theme_bw() +
+  labs(title = "Histogram of Number of Shares", subtitle = "(excluding top 10%)", x = "Shares", y = "Normalized Density")
+```
+
+In the numeric summary, one thing to look for is the mean compared to the median, as well as where the mean lies relative to the minimum and maximum values. If the mean is significantly higher than the median and/or much closer to the minimum than the maximum, that means our data is right skewed, which we can observe in the histograms. The mean shares value is included as a reference point on the histograms, and the subsetted histogram is included to account for any potential right-skew.
+
+Another thing we can look at is the relationship between the number of shares and the number of shares in referenced articles (min, max, and average).
+
+```{r}
+train %>% 
+  select(shares, self_reference_min_shares, self_reference_avg_sharess, self_reference_max_shares) %>% 
+  filter(shares<quantile(shares, p=0.9)) %>%
+  ggpairs(columnLabels = c("Shares", "Min. Ref. Shares", "Avg. Ref. Shares", "Max. Ref. Shares")) + 
+  theme_bw() +
+  labs(title = "(not including top 10% of shares)")
+```
+
+For this grid of plots, we will want to focus on the 
 
 -   descriptive statistics on numeric variables:
 
@@ -145,13 +198,15 @@ This plot help us to check linear relationship between numeric variables. We wan
 We are going to create a new variable named `weekday` and visualize share performance on different day of the week.
 
 ```{r}
-# create predictor weekday 
-train <- train %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
-
-test <- test %>% mutate(weekday=ifelse(weekday_is_monday==1, "Monday", ifelse(weekday_is_tuesday==1, "Tuesday", ifelse(weekday_is_wednesday==1, "Wednesday", ifelse(weekday_is_thursday==1, "Thursday", ifelse(weekday_is_friday==1, "Friday", ifelse(weekday_is_saturday==1, "Saturday", ifelse(weekday_is_sunday==1, "Sunday", NA))))))))
-
 # shares on different day
-train %>% group_by(weekday) %>% summarize(n=n(), min=min(shares), max=max(shares), avg=mean(shares), median=median(shares))
+train %>% group_by(weekday) %>% 
+  summarize(
+    n=n(), 
+    min=min(shares), 
+    max=max(shares), 
+    avg=mean(shares), 
+    median=median(shares)
+  )
 ```
 
 We can inspect the effect of `weekday` on the `share`. The number of records on each day as well as the minimum, maximum, mean and median values of shares on each day of the week are included in the table here. If there are big difference across `weekday`, then `weekday` and `share` are dependent.
