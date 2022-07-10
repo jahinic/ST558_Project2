@@ -3,7 +3,7 @@ title: "ST 558 Project 2"
 author: "John Hinic & Fang Wu"
 date: '2022-07-01'
 params: 
-  filter_type: ""
+  filter_type: "bus"
 ---
 
 ```{r setup, include=FALSE, warning=FALSE, message=FALSE}
@@ -344,12 +344,12 @@ mlFit
 
 #### John
 
-This model will use stepwise regression to select the optimal model based on the AIC metric, considering all possible predictive variables (aside from the Sunday indicator, weekend indicator, and the rate of negative words, which all caused )
+This model will use stepwise regression to select the optimal model based on the AIC metric, considering all possible predictive variables (aside from the Sunday indicator and weekend indicator, which were removed to preserve linear independence in the model matrix).
 
 ```{r John regression}
 mlrFit2 <- train(
   shares ~ .,
-  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday, -weekday_is_sunday, -type, -is_weekend),
+  data = train %>% select(-url, -timedelta, -starts_with("data_channel"), -weekday_is_sunday, -type, -is_weekend),
   method = "lmStepAIC",
   preProcess = c("center", "scale"),
   trControl = controlLR,
