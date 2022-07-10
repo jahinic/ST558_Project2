@@ -15,9 +15,6 @@ library(GGally)
 library(caret)
 library(corrplot)
 library(doParallel)
-#install.packages("devtools")
-#library(devtools)
-#install_github("AppliedDataSciencePartners/xgboostExplainer")
 ```
 
 ## Introduction
@@ -170,17 +167,31 @@ train %>% filter(shares<quantile(shares, p=0.9)) %>%
 
 In the numeric summary, one thing to look for is the mean compared to the median, as well as where the mean lies relative to the minimum and maximum values. If the mean is significantly higher than the median and/or much closer to the minimum than the maximum, that means our data is right skewed, which we can observe in the histograms. The mean shares value is included as a reference point on the histograms, and the subsetted histogram is included to account for any potential right-skew.
 
-
 -   descriptive statistics on numeric variables:
 
 ```{r}
-summary(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity))
+summary(
+  train %>% 
+    select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs,
+           num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess,
+           self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words,
+           global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity,
+           title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity)
+)
 ```
 
 We can find the minimum, 25% percentile, mean, median, 75% percentile and maximum values of each numeric variables from this chart.
 
 ```{r}
-sapply(train %>% select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs, num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares, self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity, global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity, abs_title_sentiment_polarity, abs_title_subjectivity), sd)
+sapply(
+  train %>% 
+    select(timedelta, n_tokens_title, n_tokens_content, n_unique_tokens, n_non_stop_unique_tokens, num_hrefs, num_self_hrefs,
+           num_imgs, num_videos, average_token_length, num_keywords, self_reference_avg_sharess, self_reference_min_shares,
+           self_reference_max_shares, global_rate_negative_words, global_rate_positive_words, global_sentiment_polarity,
+           global_subjectivity, rate_negative_words, rate_positive_words, title_subjectivity, title_sentiment_polarity,
+           abs_title_sentiment_polarity, abs_title_subjectivity), 
+  sd
+)
 ```
 
 From here we can compare standard deviation between numeric variables.
@@ -313,7 +324,14 @@ registerDoParallel(cl)
 
 ### Linear Regression Models
 
------REGRESSION EXPLANATION PLACEHOLDER-----
+As mentioned, the first 2 kinds of models we will fit to the data will be linear regression models. Linear regression is, for the most part, the most basic form of predictive modeling available. The simplest form, a single predictor and single response, is essentially just constructing a line that "agrees" with the data as closely as possible. In this case, it is similar to the basic slope form of a line, $y = mx + b$. We have a response variable $y$, a predictor variable $x$, a slope $m$, and a y-intercept $b$. However, since we are modelling real-world data, there is an additional random error term in our formula:
+
+$$ Y_i = \beta_0 + \beta_1 x_i + E_i$$
+Where $E_i$ is our random error term (and assumed to follow a normal distribution in most cases). To actually calculate the $\beta_0$ and $\beta_1$, we find the values that minimize the sum of squared errors:
+
+$$\sum_{i = 1}^{n} (y_i - \beta_0 - \beta_1 x_i)^2$$
+
+This can also be extended in many ways, such as adding in more predictor variables or higher-order terms, but the model is still fit by minimizing the sum of squared errors as with simple linear regression.
 
 #### Fang
 
@@ -369,7 +387,6 @@ rf <- train(
   preProcess = c("center", "scale"),
   trControl = controlTree,
   tuneGrid = data.frame(mtry = 1:10),
-  importance = TRUE,
   ntree = 500
 )
 
@@ -377,7 +394,7 @@ rf <- train(
 rf$results
 rf$bestTune
 varImp(rf)
-plot(varImp(rf), top = 20)
+plot(varImp(rf), top = 20, title = "Random Forest Variable Importance")
 ```
 
 #### Boosted Trees
@@ -404,33 +421,31 @@ boostedFit <- train(
   tuneGrid=tune_parameter
 )
 boostedFit
+
+# ending parallel cluster
+stopCluster(cl)
 ```
 
-### Compare models on the test set
+## Model Comparison
 
-```{r}
-ml_pred <- predict(mlFit, test)
-ml_MSE <- postResample(test$shares, ml_pred)[1]
-boosted_pred <- predict(boostedFit, test)
-boosted_MSE <- postResample(test$shares, boosted_pred)[1]
-comp <- data.frame(LR=ml_MSE, Boosted=boosted_MSE)
-comp
+Finally, we will test all 4 models on the test set to select a final model. We will write a basic helper function that pulls the fit statistics for each model on the test set, then combine them into a single table for comparison. We will select the model with the lowest RMSE as our final model.
 
+```{r John model testing}
 evalFit <- function(fit, modelName) {
   pred <- predict(fit, test)
-  stats <- postResample(predML1, obs = test$shares)
-  statsDF <- data.frame(RMSE = stats[1], Rsq = stats[2], MAE = stats[3])
-  statsDF %>%
-    pivot_longer(RMSE:MAE, names_to = "metric", values_to = modelName)
+  stats <- postResample(pred, obs = test$shares)
+  statsDF <- data.frame(Model = modelName, RMSE = stats[1], Rsq = stats[2], MAE = stats[3])
+  rownames(statsDF) <- NULL
+  return(statsDF)
 }
-predML1 <- predict(mlFit, test)
-resML1 <- postResample(predML1, obs = test$shares)
-
+eval1 <- evalFit(mlFit, "First Linear Regression")
+eval2 <- evalFit(mlrFit2, "Second Linear Regression")
+eval3 <- evalFit(rf, "Random Forest")
+eval4 <- evalFit(boostedFit, "Boosted Tree")
+fits <- rbind(eval1, eval2, eval3, eval4)
+best <- fits %>%
+  filter(RMSE == min(RMSE))
+fits
 ```
 
-```{r}
-best_model <- which.min(comp["RMSE",])
-best_model
-```
-
-`r names(best_model)` has the minimum MSE which indicates the best fitting.
+Thus, our final model will be the `r best$Model` model, which has an RMSE of `r best$RMSE`.
