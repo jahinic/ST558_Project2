@@ -24,17 +24,17 @@ Our goal is to predict the number of shares in social networks (popularity) with
 
 ## Links to analysis for each type of article:
 
-[Bus articles ia available here](/documents/bus.md)
+[Bus articles is available here](/documents/bus.md)
 
-[Entertainment articles ia available here](/documents/entertainment.md)
+[Entertainment articles is available here](/documents/entertainment.md)
 
-[Lifestyle articles ia available here](documents/lifestyle.md)
+[Lifestyle articles is available here](documents/lifestyle.md)
 
-[Socmed articles ia available here](documents/socmed.md)
+[Socmed articles is available here](documents/socmed.md)
 
-[Tech articles ia available here](documents/tech.md)
+[Tech articles is available here](documents/tech.md)
 
-[World articles ia available here](documents/world.md)
+[World articles is available here](documents/world.md)
 
 ## render code
 
